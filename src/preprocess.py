@@ -1,6 +1,8 @@
 import pandas as pd
+pd.set_option('display.max_columns', None)
+
 # Teams & Seasons
-m_teams = pd.read_csv("./data/MTeams.csv")
+m_teams = pd.read_csv("./data/MTeams.csv")  # Contains TeamID and TeamName
 w_teams = pd.read_csv("./data/WTeams.csv")
 m_seasons = pd.read_csv("./data/MSeasons.csv")
 w_seasons = pd.read_csv("./data/WSeasons.csv")
@@ -10,7 +12,7 @@ m_ncaa_seeds = pd.read_csv("./data/MNCAATourneySeeds.csv")
 w_ncaa_seeds = pd.read_csv("./data/WNCAATourneySeeds.csv")
 
 # Basic Game Results (Regular Season & Tournament)
-m_reg_compact = pd.read_csv("./data/MRegularSeasonCompactResults.csv")
+m_regular_season_results = pd.read_csv("./data/MRegularSeasonCompactResults.csv")
 w_reg_compact = pd.read_csv("./data/WRegularSeasonCompactResults.csv")
 m_ncaa_compact = pd.read_csv("./data/MNCAATourneyCompactResults.csv")
 w_ncaa_compact = pd.read_csv("./data/WNCAATourneyCompactResults.csv")
@@ -21,59 +23,55 @@ sample_submission = pd.read_csv("./data/SampleSubmissionStage1.csv")
 
 # Data Preprocessing
 
-# Merge winning team names into men's regular season compact results:
-m_reg_compact = m_reg_compact.merge(
-    m_teams[['TeamID', 'TeamName']], 
-    left_on='WTeamID', right_on='TeamID', 
-    how='left'
-).rename(columns={'TeamName': 'WTeamName'}).drop('TeamID', axis=1)
+# Extract numerical part of Seed (e.g., "W01" → 1, "X16" → 16)
+m_ncaa_seeds["Seed"] = m_ncaa_seeds["Seed"].str.extract("(\d+)").astype(int)
 
-# Merge losing team names:
-m_reg_compact = m_reg_compact.merge(
-    m_teams[['TeamID', 'TeamName']], 
-    left_on='LTeamID', right_on='TeamID', 
-    how='left'
-).rename(columns={'TeamName': 'LTeamName'}).drop('TeamID', axis=1)
+# Load Tournament Results
+m_tourney_results = pd.read_csv("./data/MNCAATourneyCompactResults.csv")
 
-print(m_reg_compact)
+# Merge Tournament Data with Seeds for Winners
+m_tourney_results = m_tourney_results.merge(m_ncaa_seeds, left_on=["Season", "WTeamID"], right_on=["Season", "TeamID"], how="left")
+m_tourney_results.rename(columns={"Seed": "WSeed"}, inplace=True)
+m_tourney_results.drop(columns=["TeamID"], inplace=True)
 
-# Merge DayZero into the regular season data:
-m_reg_compact = m_reg_compact.merge(
-    m_seasons[['Season', 'DayZero']], 
-    on='Season', 
-    how='left'
-)
+# Merge Tournament Data with Seeds for Losers
+m_tourney_results = m_tourney_results.merge(m_ncaa_seeds, left_on=["Season", "LTeamID"], right_on=["Season", "TeamID"], how="left")
+m_tourney_results.rename(columns={"Seed": "LSeed"}, inplace=True)
+m_tourney_results.drop(columns=["TeamID"], inplace=True)
 
-# Compute the actual game date (if desired)
-m_reg_compact['GameDate'] = pd.to_datetime(m_reg_compact['DayZero']) + pd.to_timedelta(m_reg_compact['DayNum'], unit='D')
+# Merge Tournament Data with Team Names
+m_tourney_results = m_tourney_results.merge(m_teams, left_on="WTeamID", right_on="TeamID", how="left").rename(columns={"TeamName": "WTeamName"}).drop(columns=["TeamID"])
+m_tourney_results = m_tourney_results.merge(m_teams, left_on="LTeamID", right_on="TeamID", how="left").rename(columns={"TeamName": "LTeamName"}).drop(columns=["TeamID"])
 
-print(m_reg_compact)
+# Create Seed Difference Feature
+m_tourney_results["Seed_Diff"] = m_tourney_results["WSeed"] - m_tourney_results["LSeed"]
 
+# Display Processed Tournament Data
+print("Tournament Data Sample:")
+print(m_tourney_results.head())
 
-# Merge winning team seed for tournament games:
-m_ncaa_compact = m_ncaa_compact.merge(
-    m_ncaa_seeds[['Season', 'TeamID', 'Seed']],
-    left_on=['Season', 'WTeamID'],
-    right_on=['Season', 'TeamID'],
-    how='left'
-).rename(columns={'Seed': 'WSeed'}).drop('TeamID', axis=1)
+# -----------------------------------------------
 
-# Merge losing team seed:
-m_ncaa_compact = m_ncaa_compact.merge(
-    m_ncaa_seeds[['Season', 'TeamID', 'Seed']],
-    left_on=['Season', 'LTeamID'],
-    right_on=['Season', 'TeamID'],
-    how='left'
-).rename(columns={'Seed': 'LSeed'}).drop('TeamID', axis=1)
+# Merge Regular Season Data with Seeds (Winners)
+m_regular_season_results = m_regular_season_results.merge(m_ncaa_seeds, left_on=["Season", "WTeamID"], right_on=["Season", "TeamID"], how="left")
+m_regular_season_results.rename(columns={"Seed": "WSeed"}, inplace=True)
+m_regular_season_results.drop(columns=["TeamID"], inplace=True)
 
-# Extract numeric part from seed (example for simple cases)
-m_ncaa_compact['WSeedNumeric'] = m_ncaa_compact['WSeed'].str.extract('(\d+)').astype(int)
-m_ncaa_compact['LSeedNumeric'] = m_ncaa_compact['LSeed'].str.extract('(\d+)').astype(int)
+# Merge Regular Season Data with Seeds (Losers)
+m_regular_season_results = m_regular_season_results.merge(m_ncaa_seeds, left_on=["Season", "LTeamID"], right_on=["Season", "TeamID"], how="left")
+m_regular_season_results.rename(columns={"Seed": "LSeed"}, inplace=True)
+m_regular_season_results.drop(columns=["TeamID"], inplace=True)
 
-# Compute seed differential (example: lower seed value indicates stronger team)
-m_ncaa_compact['SeedDiff'] = m_ncaa_compact['LSeedNumeric'] - m_ncaa_compact['WSeedNumeric']
+# Merge Regular Season Data with Team Names
+m_regular_season_results = m_regular_season_results.merge(m_teams, left_on="WTeamID", right_on="TeamID", how="left").rename(columns={"TeamName": "WTeamName"}).drop(columns=["TeamID"])
+m_regular_season_results = m_regular_season_results.merge(m_teams, left_on="LTeamID", right_on="TeamID", how="left").rename(columns={"TeamName": "LTeamName"}).drop(columns=["TeamID"])
 
+# Handle Missing Seeds
+m_regular_season_results.fillna({"WSeed": 0, "LSeed": 0}, inplace=True)
 
+# Create Seed Difference Feature
+m_regular_season_results["Seed_Diff"] = m_regular_season_results["WSeed"] - m_regular_season_results["LSeed"]
 
-
-print(m_ncaa_compact)
+# Display Processed Regular Season Data
+print("Regular Season Data Sample:")
+print(m_regular_season_results.head())
