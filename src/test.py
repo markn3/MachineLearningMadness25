@@ -40,4 +40,7 @@ m_detailed.sort_values(by=['Season', 'TeamID', 'DayNum'], inplace=True)
 m_detailed.reset_index(drop=True, inplace=True)
 
 print(m_detailed)
+
+# TODO: 
+# Make the rolling ratings for each season's games
                        
