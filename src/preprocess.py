@@ -48,7 +48,7 @@ m_tourney_results["Seed_Diff"] = m_tourney_results["WSeed"] - m_tourney_results[
 
 # Display Processed Tournament Data
 print("Tournament Data Sample:")
-print(m_tourney_results.head())
+print(m_tourney_results.shape)
 
 # -----------------------------------------------
 
@@ -74,4 +74,24 @@ m_regular_season_results["Seed_Diff"] = m_regular_season_results["WSeed"] - m_re
 
 # Display Processed Regular Season Data
 print("Regular Season Data Sample:")
-print(m_regular_season_results.head())
+print(m_regular_season_results.shape)
+
+# -----------------------------------------------
+
+# Combine Both Datasets into One
+all_games = pd.concat([m_regular_season_results, m_tourney_results], ignore_index=True)
+
+# Display Final Merged Dataset Sample
+print("Final Merged Dataset Sample:")
+print(all_games.head())
+print(all_games['WTeamID'].nunique())
+
+# Save to CSV for Future Use
+# all_games.to_csv("Merged_Season_Tourney_Data.csv", index=False)
+
+
+# --------------------------------------------
+
+# test
+all_games['WScore_diff'] = all_games['WScore'] - all_games['LScore']
+print(all_games.head())
