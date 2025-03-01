@@ -92,6 +92,22 @@ print(all_games['WTeamID'].nunique())
 
 # --------------------------------------------
 
+# Offensive Rating
+
 # test
 all_games['WScore_diff'] = all_games['WScore'] - all_games['LScore']
-print(all_games.head())
+print(all_games)
+
+print((all_games['Season']<2003).sum())
+
+# Detailed regular
+# [117748 rows x 8 columns]
+
+# detailed tourney
+# [1382 rows x 8 columns]
+
+# preprocess combined total
+# [194314 rows x 18 columns]
+
+# 114450
+# 75184
