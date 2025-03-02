@@ -217,35 +217,23 @@ merged_final = pd.merge(merged_final, l_dynamic, on=['Season', 'LTeamID', 'DayNu
 print("Merged Final Dataset Sample with Dynamic Ratings:")
 print(merged_final.head())
 
-# print(merged_final.shape)
-# nan_count = merged_final['W_roll_Net'].isna().sum()
-# print(nan_count)
-# nan_count = merged_final['W_roll_Off'].isna().sum()
-# print(nan_count)
-# nan_count = merged_final['W_roll_Def'].isna().sum()
-# print(nan_count)
+print(merged_final.shape)
+nan_count = merged_final[['W_roll_Net','W_roll_Off','W_roll_Def','L_roll_Net','L_roll_Off','L_roll_Def']].isna().sum()
+print(nan_count)
 
-# nan_count = merged_final['L_roll_Net'].isna().sum()
-# print(nan_count)
-# nan_count = merged_final['L_roll_Off'].isna().sum()
-# print(nan_count)
-# nan_count = merged_final['L_roll_Def'].isna().sum()
-# print(nan_count)
+merged_final = merged_final.dropna(subset=['W_roll_Net','W_roll_Off','W_roll_Def','L_roll_Net','L_roll_Off','L_roll_Def'])
+nan_count = merged_final[['W_roll_Net','W_roll_Off','W_roll_Def','L_roll_Net','L_roll_Off','L_roll_Def']].isna().sum()
+print(nan_count)
 
-# nan_count = all_team_games_long['DynamicRating'].isna().sum()
-# print("Number of NaN in DynamicRating:", nan_count)
+# Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
+team_id = 1102
+team_data = merged_final[(merged_final['WTeamID'] == team_id) | (merged_final['LTeamID'] == team_id)].sort_values(by=['Season', 'DayNum'])
 
-# all_team_games_long = all_team_games_long.dropna(subset=['DynamicRating'])
+# TODO: 
+# CHeck and make sure that rolling ratings for wins and losses are calculated together and not separate
 
-# nan_count = all_team_games_long['DynamicRating'].isna().sum()
-# print("Number of NaN in DynamicRating after purge:", nan_count)
-
-# # Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
-# team_id = 1101
-# team_data = all_team_games_long[all_team_games_long['TeamID'] == team_id].sort_values(by=['Season','DayNum'])
-
-# # Display the results for that team
-# print(team_data[['Season', 'DayNum', 'NetRtg', 'DynamicRating']])
+# Display the results for that team
+print(team_data)
 
 # # Optionally, save the final merged dataset to a CSV
 # merged_final.to_csv("Merged_Final_Data.csv", index=False)
