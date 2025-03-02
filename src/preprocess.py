@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 pd.set_option('display.max_columns', None)
 
 # Teams & Seasons
@@ -81,15 +82,6 @@ print(m_regular_season_results.shape)
 # Combine Both Datasets into One
 all_games = pd.concat([m_regular_season_results, m_tourney_results], ignore_index=True)
 
-# Display Final Merged Dataset Sample
-print("Final Merged Dataset Sample:")
-print(all_games.head())
-print(all_games['WTeamID'].nunique())
-
-# Save to CSV for Future Use
-# all_games.to_csv("Merged_Season_Tourney_Data.csv", index=False)
-
-
 # --------------------------------------------
 
 # Offensive Rating
@@ -118,7 +110,7 @@ def calculate_ratings(df):
     df['L_NetRtg'] = df['L_OffRtg'] - df['L_DefRtg']
 
     # drop unnecessary columns
-    df = df[['Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_OffRtg', 'L_OffRtg', 'W_DefRtg', 'L_DefRtg']]
+    df = df[['Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_OffRtg', 'L_OffRtg', 'W_DefRtg', 'L_DefRtg', 'W_NetRtg', 'L_NetRtg']]
 
     return df
 
@@ -134,9 +126,130 @@ merged_final = pd.merge(
     how='inner'
 )
 
-# Display a sample of the final merged dataset
-print("Merged Final Dataset Sample:")
-print(merged_final)
+# --- Assume merged_final is already built and includes:
+# 'Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_NetRtg', 'L_NetRtg', etc.
+
+# Step 1: Create long format for winning teams
+w_data = merged_final[['Season', 'DayNum', 'WTeamID', 'W_NetRtg']].copy()
+w_data.rename(columns={'WTeamID': 'TeamID', 'W_NetRtg': 'NetRtg'}, inplace=True)
+w_data['Role'] = 'W'
+
+# Step 2: Create long format for losing teams
+l_data = merged_final[['Season', 'DayNum', 'LTeamID', 'L_NetRtg']].copy()
+l_data.rename(columns={'LTeamID': 'TeamID', 'L_NetRtg': 'NetRtg'}, inplace=True)
+l_data['Role'] = 'L'
+
+# Step 3: Combine both DataFrames into one
+all_team_games_long = pd.concat([w_data, l_data], ignore_index=True)
+
+# Step 4: Sort by Season, TeamID, and DayNum so games are in chronological order
+all_team_games_long.sort_values(by=['Season', 'TeamID', 'DayNum'], inplace=True)
+
+# Step 5: Compute the rolling/dynamic rating per team (average NetRtg from all previous games)
+def compute_rolling_rating(group):
+    dynamic_ratings = []
+    cumulative_sum = 0.0
+    count = 0
+    for net in group['NetRtg']:
+        if count == 0:
+            dynamic_ratings.append(np.nan)  # No previous game exists
+        else:
+            dynamic_ratings.append(cumulative_sum / count)
+        cumulative_sum += net
+        count += 1
+    group = group.copy()
+    group['DynamicRating'] = dynamic_ratings
+    return group
+
+# Apply the function for each team in each season
+all_team_games_long = all_team_games_long.groupby(['Season', 'TeamID']).apply(compute_rolling_rating)
+all_team_games_long.reset_index(drop=True, inplace=True)
+
+# Inspect the dynamic ratings for a specific team (e.g., TeamID 1101)
+team_1101 = all_team_games_long[all_team_games_long['TeamID'] == 1101].sort_values(by='DayNum')
+print("Dynamic Ratings for Team 1101:")
+print(team_1101[['Season', 'DayNum', 'NetRtg', 'DynamicRating']])
+
+# Optionally, you can merge these dynamic ratings back into your wide-format merged_final dataset
+# For instance, for winning teams:
+w_dynamic = all_team_games_long[all_team_games_long['Role'] == 'W'][['Season', 'TeamID', 'DayNum', 'DynamicRating']].copy()
+w_dynamic.rename(columns={'TeamID': 'WTeamID', 'DynamicRating': 'W_DynamicRating'}, inplace=True)
+
+merged_final = pd.merge(merged_final, w_dynamic, on=['Season', 'WTeamID', 'DayNum'], how='left')
+
+# And for losing teams:
+l_dynamic = all_team_games_long[all_team_games_long['Role'] == 'L'][['Season', 'TeamID', 'DayNum', 'DynamicRating']].copy()
+l_dynamic.rename(columns={'TeamID': 'LTeamID', 'DynamicRating': 'L_DynamicRating'}, inplace=True)
+
+merged_final = pd.merge(merged_final, l_dynamic, on=['Season', 'LTeamID', 'DayNum'], how='left')
+
+# Inspect final merged data sample with dynamic ratings for both winners and losers
+print("Merged Final Dataset Sample with Dynamic Ratings:")
+print(merged_final[['Season', 'DayNum', 'WTeamID', 'W_NetRtg', 'W_DynamicRating',
+                     'LTeamID', 'L_NetRtg', 'L_DynamicRating']].head())
+
+team_1101 = all_team_games_long[all_team_games_long['TeamID'] == 1101].sort_values(by='DayNum')
+print(team_1101[['Season', 'DayNum', 'NetRtg', 'DynamicRating']])
+
+print(merged_final.shape)
+
+
+
+
+# # Assume merged_final has already been built and includes columns:
+# # 'Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_NetRtg', 'L_NetRtg', ... etc.
+
+# # -----------------------------------------------------
+# # Step 1: Reshape the Data into a "Long" Format
+# # -----------------------------------------------------
+# # For the winning team records
+# w_data = merged_final[['Season', 'DayNum', 'WTeamID', 'W_NetRtg']].copy()
+# w_data.rename(columns={'WTeamID': 'TeamID', 'W_NetRtg': 'NetRtg'}, inplace=True)
+# w_data['Role'] = 'W'
+
+# # For the losing team records
+# l_data = merged_final[['Season', 'DayNum', 'LTeamID', 'L_NetRtg']].copy()
+# l_data.rename(columns={'LTeamID': 'TeamID', 'L_NetRtg': 'NetRtg'}, inplace=True)
+# l_data['Role'] = 'L'
+
+# # Combine into a single DataFrame where each row represents one team's performance in a game
+# all_team_games = pd.concat([w_data, l_data], ignore_index=True)
+
+# # Sort by Season, then by TeamID, and then by DayNum so that earlier games come first
+# all_team_games.sort_values(by=['Season', 'TeamID', 'DayNum'], inplace=True)
+
+# # -----------------------------------------------------
+# # Step 2: Compute the Dynamic Rating for Each Team
+# # -----------------------------------------------------
+# # For each team in each season, compute a cumulative average of their NetRtg 
+# # Instead of using .apply(), use .transform() to ensure index alignment:
+# all_team_games['DynamicRating'] = all_team_games.groupby(['Season', 'TeamID'])['NetRtg']\
+#     .transform(lambda x: x.shift().expanding().mean())
+
+# # -----------------------------------------------------
+# # Step 3: Merge the Dynamic Ratings Back into merged_final
+# # -----------------------------------------------------
+# # For the winning teams:
+# w_dynamic = all_team_games[all_team_games['Role'] == 'W'][['Season', 'TeamID', 'DayNum', 'DynamicRating']].copy()
+# w_dynamic.rename(columns={'TeamID': 'WTeamID', 'DynamicRating': 'W_DynamicRating'}, inplace=True)
+
+# # Merge back on Season, WTeamID, and DayNum
+# merged_final = pd.merge(merged_final, w_dynamic, on=['Season', 'WTeamID', 'DayNum'], how='left')
+
+# # For the losing teams:
+# l_dynamic = all_team_games[all_team_games['Role'] == 'L'][['Season', 'TeamID', 'DayNum', 'DynamicRating']].copy()
+# l_dynamic.rename(columns={'TeamID': 'LTeamID', 'DynamicRating': 'L_DynamicRating'}, inplace=True)
+
+# # Merge back on Season, LTeamID, and DayNum
+# merged_final = pd.merge(merged_final, l_dynamic, on=['Season', 'LTeamID', 'DayNum'], how='left')
+
+# # -----------------------------------------------------
+# # Display a Sample of the Final DataFrame
+# # -----------------------------------------------------
+# print("Merged Final Dataset with Dynamic Ratings:")
+# print(merged_final[['Season', 'DayNum', 'WTeamID', 'W_NetRtg', 'W_DynamicRating',
+#                      'LTeamID', 'L_NetRtg', 'L_DynamicRating']].head(10))
+
 
 # # Optionally, save the final merged dataset to a CSV
 # merged_final.to_csv("Merged_Final_Data.csv", index=False)
