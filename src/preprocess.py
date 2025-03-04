@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 pd.set_option('display.max_columns', None)
 
+
 # Teams & Seasons
 m_teams = pd.read_csv("./data/MTeams.csv")  # Contains TeamID and TeamName
 w_teams = pd.read_csv("./data/WTeams.csv")
@@ -20,7 +21,6 @@ w_ncaa_compact = pd.read_csv("./data/WNCAATourneyCompactResults.csv")
 
 # Sample submission format (to guide matchup construction)
 sample_submission = pd.read_csv("./data/SampleSubmissionStage1.csv")
-
 
 # Data Preprocessing
 
@@ -229,11 +229,21 @@ print(nan_count)
 team_id = 1102
 team_data = merged_final[(merged_final['WTeamID'] == team_id) | (merged_final['LTeamID'] == team_id)].sort_values(by=['Season', 'DayNum'])
 
-# TODO: 
-# CHeck and make sure that rolling ratings for wins and losses are calculated together and not separate
-
 # Display the results for that team
 print(team_data)
+
+print(merged_final)
+
+
+cols_to_drop = [
+    'WTeamName', 'LTeamName',
+    'FirstD1Season_x', 'LastD1Season_x', 'FirstD1Season_y', 'LastD1Season_y',
+    'WScore', 'LScore', 'W_OffRtg',  'L_OffRtg',  'W_DefRtg',    'L_DefRtg',   'W_NetRtg', 'L_NetRtg',  # if you don't need raw scores
+]
+
+merged_final.drop(columns=cols_to_drop, inplace=True)
+
+print(merged_final)
 
 # # Optionally, save the final merged dataset to a CSV
 # merged_final.to_csv("Merged_Final_Data.csv", index=False)
