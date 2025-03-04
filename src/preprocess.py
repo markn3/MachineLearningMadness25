@@ -259,12 +259,12 @@ def reformat_matchup(row):
     
     # Swap team-related columns to match Team1 and Team2
     if w_id == team1:
-        return pd.Series([team1, team2, target, row['WSeed'], row['LSeed'], 
+        return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['WSeed'], row['LSeed'], 
                           row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'],
                           row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses']
                          ])
     else:
-        return pd.Series([team1, team2, target, row['LSeed'], row['WSeed'], 
+        return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['LSeed'], row['WSeed'], 
                           row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'],
                           row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses']
                          ])
@@ -273,7 +273,7 @@ def reformat_matchup(row):
 matchup_data = merged_final.apply(reformat_matchup, axis=1)
 
 # Rename the columns
-matchup_data.columns = ['Team1', 'Team2', 'Target', 
+matchup_data.columns = ['Season','DayNum','Team1', 'Team2', 'Target', 
                         'T1_Seed', 'T2_Seed', 
                         'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
                         'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses']
@@ -281,7 +281,8 @@ matchup_data.columns = ['Team1', 'Team2', 'Target',
 # Merge back other potential features if needed
 print(matchup_data)
 
-# Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
+# matchup_data = matchup_data['net_dif'] = ['T1_roll_Off'] - ['T1_roll_def']
+# # Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
 team_id = 1102
 team_data = matchup_data[(matchup_data['Team1'] == team_id) | (matchup_data['Team2'] == team_id)].sort_values(by=['Season', 'DayNum'])
 
