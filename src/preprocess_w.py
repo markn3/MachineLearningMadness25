@@ -2,22 +2,19 @@ import pandas as pd
 import numpy as np
 pd.set_option('display.max_columns', None)
 
-
 # Teams & Seasons
-m_teams = pd.read_csv("./data/MTeams.csv")  # Contains TeamID and TeamName
+m_teams = pd.read_csv("./data/WTeams.csv")  # Contains TeamID and TeamName
 w_teams = pd.read_csv("./data/WTeams.csv")
 m_seasons = pd.read_csv("./data/MSeasons.csv")
 w_seasons = pd.read_csv("./data/WSeasons.csv")
 
 # Tournament Seeds
-m_ncaa_seeds = pd.read_csv("./data/MNCAATourneySeeds.csv")
+m_ncaa_seeds = pd.read_csv("./data/WNCAATourneySeeds.csv")
 w_ncaa_seeds = pd.read_csv("./data/WNCAATourneySeeds.csv")
 
 # Basic Game Results (Regular Season & Tournament)
-m_regular_season_results = pd.read_csv("./data/MRegularSeasonCompactResults.csv")
+m_regular_season_results = pd.read_csv("./data/WRegularSeasonCompactResults.csv")
 w_reg_compact = pd.read_csv("./data/WRegularSeasonCompactResults.csv")
-m_ncaa_compact = pd.read_csv("./data/MNCAATourneyCompactResults.csv")
-w_ncaa_compact = pd.read_csv("./data/WNCAATourneyCompactResults.csv")
 
 # Sample submission format (to guide matchup construction)
 sample_submission = pd.read_csv("./data/SampleSubmissionStage1.csv")
@@ -28,7 +25,7 @@ sample_submission = pd.read_csv("./data/SampleSubmissionStage1.csv")
 m_ncaa_seeds["Seed"] = m_ncaa_seeds["Seed"].str.extract("(\d+)").astype(int)
 
 # Load Tournament Results
-m_tourney_results = pd.read_csv("./data/MNCAATourneyCompactResults.csv")
+m_tourney_results = pd.read_csv("./data/WNCAATourneyCompactResults.csv")
 
 # Merge Tournament Data with Seeds for Winners
 m_tourney_results = m_tourney_results.merge(m_ncaa_seeds, left_on=["Season", "WTeamID"], right_on=["Season", "TeamID"], how="left")
@@ -75,6 +72,7 @@ m_regular_season_results["Seed_Diff"] = m_regular_season_results["WSeed"] - m_re
 
 # Display Processed Regular Season Data
 print("Regular Season Data Sample:")
+print(m_regular_season_results.shape)
 
 # -----------------------------------------------
 
@@ -86,8 +84,8 @@ all_games = pd.concat([m_regular_season_results, m_tourney_results], ignore_inde
 # Offensive Rating
 
 # Teams & Seasons
-m_reg_detailed = pd.read_csv("./data/MRegularSeasonDetailedResults.csv")
-m_t_detailed = pd.read_csv("./data/MNCAATourneyDetailedResults.csv")
+m_reg_detailed = pd.read_csv("./data/WRegularSeasonDetailedResults.csv")
+m_t_detailed = pd.read_csv("./data/WNCAATourneyDetailedResults.csv")
 
 # Offensive Rating
 def calculate_ratings(df):
@@ -225,25 +223,12 @@ merged_final = merged_final.dropna(subset=['W_roll_Off','W_roll_Def','L_roll_Off
 nan_count = merged_final[['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def', 'L_roll_Wins', 'L_roll_Losses','W_roll_Wins', 'W_roll_Losses']].isna().sum()
 print(nan_count)
 
-# Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
-team_id = 1102
-team_data = merged_final[(merged_final['WTeamID'] == team_id) | (merged_final['LTeamID'] == team_id)].sort_values(by=['Season', 'DayNum'])
-
-# Display the results for that team
-print(team_data)
-
-print(merged_final)
-
-
 cols_to_drop = [
     'WTeamName', 'LTeamName',
-    'FirstD1Season_x', 'LastD1Season_x', 'FirstD1Season_y', 'LastD1Season_y',
     'WScore', 'LScore', 'W_OffRtg',  'L_OffRtg',  'W_DefRtg', 'L_DefRtg', 'NumOT' # if you don't need raw scores
 ]
 
 merged_final.drop(columns=cols_to_drop, inplace=True)
-
-print(merged_final)
 
 # Assume merged_final contains the original game data
 def reformat_matchup(row):
@@ -278,18 +263,7 @@ matchup_data.columns = ['Season','DayNum','Team1', 'Team2', 'Target',
                         'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
                         'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses']
 
-# Merge back other potential features if needed
-print(matchup_data)
 
 matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_Def']) - (matchup_data['T2_roll_Off'] - matchup_data['T2_roll_Def'])
 print(matchup_data)
-# Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
-team_id = 1102
-team_data = matchup_data[(matchup_data['Team1'] == team_id) | (matchup_data['Team2'] == team_id)].sort_values(by=['Season', 'DayNum'])
-
-print(team_data)
-
-# TODO:
-# Seasons and DayNum
-# Optionally, save the final merged dataset to a CSV
 # merged_final.to_csv("Merged_Final_Data.csv", index=False)
