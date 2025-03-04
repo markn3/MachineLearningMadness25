@@ -104,13 +104,8 @@ def calculate_ratings(df):
     df['W_DefRtg'] = (df['LScore'] / df['LPoss']) * 100
     df['L_DefRtg'] = (df['WScore'] / df['WPoss']) * 100
 
-
-    # Net Rating
-    df['W_NetRtg'] = df['W_OffRtg'] - df['W_DefRtg']
-    df['L_NetRtg'] = df['L_OffRtg'] - df['L_DefRtg']
-
     # drop unnecessary columns
-    df = df[['Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_OffRtg', 'L_OffRtg', 'W_DefRtg', 'L_DefRtg', 'W_NetRtg', 'L_NetRtg']]
+    df = df[['Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_OffRtg', 'L_OffRtg', 'W_DefRtg', 'L_DefRtg']]
 
     return df
 
@@ -127,26 +122,24 @@ merged_final = pd.merge(
 )
 
 # --- Assume merged_final is already built and includes:
-# 'Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_OffRtg', 'W_DefRtg', 'W_NetRtg',
-# 'L_OffRtg', 'L_DefRtg', 'L_NetRtg', etc.
+# 'Season', 'DayNum', 'WTeamID', 'LTeamID', 'W_OffRtg', 'W_DefRtg',
+# 'L_OffRtg', 'L_DefRtg', etc.
 
 # Step 1: Create long format for winning teams (include OffRtg, DefRtg, NetRtg)
-w_data = merged_final[['Season', 'DayNum', 'WTeamID', 'W_OffRtg', 'W_DefRtg', 'W_NetRtg']].copy()
+w_data = merged_final[['Season', 'DayNum', 'WTeamID', 'W_OffRtg', 'W_DefRtg']].copy()
 w_data.rename(columns={
     'WTeamID': 'TeamID',
     'W_OffRtg': 'OffRtg',
-    'W_DefRtg': 'DefRtg',
-    'W_NetRtg': 'NetRtg'
+    'W_DefRtg': 'DefRtg'
 }, inplace=True)
 w_data['Role'] = 'W'
 
 # Step 2: Create long format for losing teams (include OffRtg, DefRtg, NetRtg)
-l_data = merged_final[['Season', 'DayNum', 'LTeamID', 'L_OffRtg', 'L_DefRtg', 'L_NetRtg']].copy()
+l_data = merged_final[['Season', 'DayNum', 'LTeamID', 'L_OffRtg', 'L_DefRtg']].copy()
 l_data.rename(columns={
     'LTeamID': 'TeamID',
     'L_OffRtg': 'OffRtg',
     'L_DefRtg': 'DefRtg',
-    'L_NetRtg': 'NetRtg'
 }, inplace=True)
 l_data['Role'] = 'L'
 
@@ -158,31 +151,39 @@ all_team_games_long.sort_values(by=['Season', 'TeamID', 'DayNum'], inplace=True)
 
 # Step 5: Compute the rolling/dynamic ratings per team (average of previous games)
 def compute_rolling_ratings(group):
-    roll_net = []
     roll_off = []
     roll_def = []
-    cumulative_net = 0.0
+    roll_wins = []
+    roll_losses = []
     cumulative_off = 0.0
     cumulative_def = 0.0
+    cumulative_wins = 0
+    cumulative_losses = 0
     count = 0
     # Iterate over the rows in this group (already sorted by DayNum)
-    for net, off, defe in zip(group['NetRtg'], group['OffRtg'], group['DefRtg']):
+    for off, defe, role in zip(group['OffRtg'], group['DefRtg'], group['Role']):
         if count == 0:
-            roll_net.append(np.nan)
             roll_off.append(np.nan)
             roll_def.append(np.nan)
+            roll_wins.append(np.nan)
+            roll_losses.append(np.nan)
         else:
-            roll_net.append(cumulative_net / count)
             roll_off.append(cumulative_off / count)
             roll_def.append(cumulative_def / count)
-        cumulative_net += net
+            roll_wins.append(cumulative_wins)
+            roll_losses.append(cumulative_losses)
         cumulative_off += off
         cumulative_def += defe
+        if role == "W":
+            cumulative_wins += 1
+        elif role == "L": 
+            cumulative_losses += 1
         count += 1
     group = group.copy()
-    group['roll_net'] = roll_net
     group['roll_off'] = roll_off
     group['roll_def'] = roll_def
+    group['roll_wins'] = roll_wins
+    group['roll_losses'] = roll_losses
     return group
 
 # Apply the function group-by-group (for each team in each season)
@@ -190,24 +191,26 @@ all_team_games_long = all_team_games_long.groupby(['Season', 'TeamID']).apply(co
 all_team_games_long.reset_index(drop=True, inplace=True)
 
 # For winning teams: extract and rename the dynamic ratings
-w_dynamic = all_team_games_long[all_team_games_long['Role'] == 'W'][['Season', 'TeamID', 'DayNum', 'roll_net', 'roll_off', 'roll_def']].copy()
+w_dynamic = all_team_games_long[all_team_games_long['Role'] == 'W'][['Season', 'TeamID', 'DayNum', 'roll_off', 'roll_def', 'roll_wins', 'roll_losses']].copy()
 w_dynamic.rename(columns={
     'TeamID': 'WTeamID',
-    'roll_net': 'W_roll_Net',
     'roll_off': 'W_roll_Off',
-    'roll_def': 'W_roll_Def'
+    'roll_def': 'W_roll_Def',
+    'roll_wins': 'W_roll_Wins',
+    'roll_losses': 'W_roll_Losses'
 }, inplace=True)
 
 # Merge the winning team's dynamic ratings back into merged_final
 merged_final = pd.merge(merged_final, w_dynamic, on=['Season', 'WTeamID', 'DayNum'], how='left')
 
 # For losing teams: extract and rename the dynamic ratings
-l_dynamic = all_team_games_long[all_team_games_long['Role'] == 'L'][['Season', 'TeamID', 'DayNum', 'roll_net', 'roll_off', 'roll_def']].copy()
+l_dynamic = all_team_games_long[all_team_games_long['Role'] == 'L'][['Season', 'TeamID', 'DayNum', 'roll_off', 'roll_def', 'roll_wins', 'roll_losses']].copy()
 l_dynamic.rename(columns={
     'TeamID': 'LTeamID',
-    'roll_net': 'L_roll_Net',
     'roll_off': 'L_roll_Off',
-    'roll_def': 'L_roll_Def'
+    'roll_def': 'L_roll_Def',
+    'roll_wins': 'L_roll_Wins',
+    'roll_losses': 'L_roll_Losses'
 }, inplace=True)
 
 # Merge the losing team's dynamic ratings back into merged_final
@@ -218,11 +221,11 @@ print("Merged Final Dataset Sample with Dynamic Ratings:")
 print(merged_final.head())
 
 print(merged_final.shape)
-nan_count = merged_final[['W_roll_Net','W_roll_Off','W_roll_Def','L_roll_Net','L_roll_Off','L_roll_Def']].isna().sum()
+nan_count = merged_final[['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def']].isna().sum()
 print(nan_count)
 
-merged_final = merged_final.dropna(subset=['W_roll_Net','W_roll_Off','W_roll_Def','L_roll_Net','L_roll_Off','L_roll_Def'])
-nan_count = merged_final[['W_roll_Net','W_roll_Off','W_roll_Def','L_roll_Net','L_roll_Off','L_roll_Def']].isna().sum()
+merged_final = merged_final.dropna(subset=['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def', 'L_roll_Wins', 'L_roll_Losses','W_roll_Wins', 'W_roll_Losses'])
+nan_count = merged_final[['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def', 'L_roll_Wins', 'L_roll_Losses','W_roll_Wins', 'W_roll_Losses']].isna().sum()
 print(nan_count)
 
 # Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
@@ -238,24 +241,12 @@ print(merged_final)
 cols_to_drop = [
     'WTeamName', 'LTeamName',
     'FirstD1Season_x', 'LastD1Season_x', 'FirstD1Season_y', 'LastD1Season_y',
-    'WScore', 'LScore', 'W_OffRtg',  'L_OffRtg',  'W_DefRtg',    'L_DefRtg',   'W_NetRtg', 'L_NetRtg',  # if you don't need raw scores
+    'WScore', 'LScore', 'W_OffRtg',  'L_OffRtg',  'W_DefRtg', 'L_DefRtg', 'NumOT' # if you don't need raw scores
 ]
 
 merged_final.drop(columns=cols_to_drop, inplace=True)
 
 print(merged_final)
 
-# # Optionally, save the final merged dataset to a CSV
+# Optionally, save the final merged dataset to a CSV
 # merged_final.to_csv("Merged_Final_Data.csv", index=False)
-
-# Detailed regular
-# [117748 rows x 8 columns]
-
-# detailed tourney
-# [1382 rows x 8 columns]
-
-# preprocess combined total
-# [194314 rows x 18 columns]
-
-# 114450
-# 75184
