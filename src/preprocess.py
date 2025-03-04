@@ -75,7 +75,6 @@ m_regular_season_results["Seed_Diff"] = m_regular_season_results["WSeed"] - m_re
 
 # Display Processed Regular Season Data
 print("Regular Season Data Sample:")
-print(m_regular_season_results.shape)
 
 # -----------------------------------------------
 
@@ -97,8 +96,6 @@ def calculate_ratings(df):
 
     df['W_OffRtg'] = (df['WScore'] / df['WPoss']) * 100
     df['L_OffRtg'] = (df['LScore'] / df['LPoss']) * 100
-
-    print(df)
 
     # Defensive Rating
     df['W_DefRtg'] = (df['LScore'] / df['LPoss']) * 100
@@ -248,5 +245,49 @@ merged_final.drop(columns=cols_to_drop, inplace=True)
 
 print(merged_final)
 
+# Assume merged_final contains the original game data
+def reformat_matchup(row):
+    w_id = row['WTeamID']
+    l_id = row['LTeamID']
+    
+    # Determine lower and higher team ID
+    team1 = min(w_id, l_id)
+    team2 = max(w_id, l_id)
+    
+    # Target: 1 if the lower ID team won, 0 otherwise
+    target = 1 if w_id == team1 else 0
+    
+    # Swap team-related columns to match Team1 and Team2
+    if w_id == team1:
+        return pd.Series([team1, team2, target, row['WSeed'], row['LSeed'], 
+                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'],
+                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses']
+                         ])
+    else:
+        return pd.Series([team1, team2, target, row['LSeed'], row['WSeed'], 
+                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'],
+                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses']
+                         ])
+
+# Apply the function to each row
+matchup_data = merged_final.apply(reformat_matchup, axis=1)
+
+# Rename the columns
+matchup_data.columns = ['Team1', 'Team2', 'Target', 
+                        'T1_Seed', 'T2_Seed', 
+                        'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
+                        'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses']
+
+# Merge back other potential features if needed
+print(matchup_data)
+
+# Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
+team_id = 1102
+team_data = matchup_data[(matchup_data['Team1'] == team_id) | (matchup_data['Team2'] == team_id)].sort_values(by=['Season', 'DayNum'])
+
+print(team_data)
+
+# TODO:
+# Seasons and DayNum
 # Optionally, save the final merged dataset to a CSV
 # merged_final.to_csv("Merged_Final_Data.csv", index=False)
