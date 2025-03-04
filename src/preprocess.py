@@ -281,8 +281,9 @@ matchup_data.columns = ['Season','DayNum','Team1', 'Team2', 'Target',
 # Merge back other potential features if needed
 print(matchup_data)
 
-# matchup_data = matchup_data['net_dif'] = ['T1_roll_Off'] - ['T1_roll_def']
-# # Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
+matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_Def']) - (matchup_data['T2_roll_Off'] - matchup_data['T2_roll_Def'])
+print(matchup_data)
+# Choose a specific team (e.g., TeamID 1101) and sort by DayNum (or date)
 team_id = 1102
 team_data = matchup_data[(matchup_data['Team1'] == team_id) | (matchup_data['Team2'] == team_id)].sort_values(by=['Season', 'DayNum'])
 
