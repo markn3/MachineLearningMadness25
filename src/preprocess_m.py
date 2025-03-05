@@ -232,6 +232,7 @@ cols_to_drop = [
 ]
 
 merged_final.drop(columns=cols_to_drop, inplace=True)
+print(merged_final)
 
 # Assume merged_final contains the original game data
 def reformat_matchup(row):
@@ -249,25 +250,54 @@ def reformat_matchup(row):
     if w_id == team1:
         return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['WSeed'], row['LSeed'], 
                           row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'],
-                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses']
+                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'], row['WLoc']
                          ])
     else:
         return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['LSeed'], row['WSeed'], 
                           row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'],
-                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses']
+                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'], row['WLoc']
                          ])
 
 # Apply the function to each row
 matchup_data = merged_final.apply(reformat_matchup, axis=1)
 
+
 # Rename the columns
 matchup_data.columns = ['Season','DayNum','Team1', 'Team2', 'Target', 
                         'T1_Seed', 'T2_Seed', 
                         'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
-                        'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses']
+                        'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses', 'WLoc']
 
+def assign_homecourt(row):
+    # row['WLoc'] is the location of the winning team.
+    # row['Target'] is 1 if Team1 (the lower-ID team) won, 0 otherwise.
+    if row['WLoc'] == 'N':
+        return 0  # neutral site, no home advantage
+    elif row['WLoc'] == 'H':
+        # Winning team was at home.
+        if row['Target'] == 1:
+            # Team1 won and is the winning team → Team1 was at home.
+            return 1
+        else:
+            # Team2 won and is the winning team → Team2 was at home.
+            return 2
+    elif row['WLoc'] == 'A':
+        # Winning team was away.
+        if row['Target'] == 1:
+            # Team1 won but was away → therefore, Team2 was at home.
+            return 2
+        else:
+            # Team2 won but was away → therefore, Team1 was at home.
+            return 1
+    else:
+        # In case of any unexpected value, treat it as neutral.
+        return 0
+
+# Apply the function to each row of your matchup DataFrame
+matchup_data['HomeCourt'] = matchup_data.apply(assign_homecourt, axis=1)
 
 matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_Def']) - (matchup_data['T2_roll_Off'] - matchup_data['T2_roll_Def'])
-print(matchup_data)
+
+matchup_data.drop(columns=["WLoc"], inplace=True)
 
 matchup_data.to_csv("./data/men_dataset.csv", index=False)

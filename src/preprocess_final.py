@@ -13,3 +13,7 @@ women_df['Gender'] = 'W'
 combined_df = pd.concat([men_df, women_df], ignore_index=True)
 
 print(combined_df)
+
+# One hot encode categorical features
+
+# ohe_df = pd.get_dummies(combined_df, columns=[''])
