@@ -305,5 +305,8 @@ cols = list(matchup_data.columns)
 cols.remove('Target')
 cols.append('Target')
 matchup_data = matchup_data[cols]
+print("Columns after reordering:", list(matchup_data.columns))
+
+print(matchup_data)
 
 # matchup_data.to_csv("./data/men_dataset.csv", index=False)
