@@ -270,4 +270,4 @@ matchup_data.columns = ['Season','DayNum','Team1', 'Team2', 'Target',
 matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_Def']) - (matchup_data['T2_roll_Off'] - matchup_data['T2_roll_Def'])
 print(matchup_data)
 
-# merged_final.to_csv("Merged_Final_Data.csv", index=False)
+matchup_data.to_csv("./data/men_dataset.csv", index=False)
