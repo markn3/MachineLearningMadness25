@@ -300,4 +300,10 @@ matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_
 
 matchup_data.drop(columns=["WLoc"], inplace=True)
 
-matchup_data.to_csv("./data/men_dataset.csv", index=False)
+# Reorder columns so that 'Target' is the last column
+cols = list(matchup_data.columns)
+cols.remove('Target')
+cols.append('Target')
+matchup_data = matchup_data[cols]
+
+# matchup_data.to_csv("./data/men_dataset.csv", index=False)
