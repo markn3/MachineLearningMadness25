@@ -1,14 +1,9 @@
 import pandas as pd
-pd.set_option('display.max_columns', None)
-
 from sklearn.preprocessing import StandardScaler
+pd.set_option('display.max_columns', None)
 
 men_df = pd.read_csv("./data/men_dataset.csv")
 women_df = pd.read_csv("./data/women_dataset.csv")
-
-
-# men_df['Gender'] = 'M'
-# women_df['Gender'] = 'W'
 
 df = pd.concat([men_df, women_df], ignore_index=True)
 
@@ -21,9 +16,16 @@ target = df['Target']
 features = df.drop(columns=['Target'])
 # features = df.drop(columns=['Target', 'Team1', 'Team2']) 
 
-# One hot encode categorical features
 
+# One hot encode categorical features
 # We'll one-hot encode 'Gender' and 'HomeCourt'
 features = pd.get_dummies(features, columns=['HomeCourt'], drop_first=True)
 
+# Normalize DayNum within each season so that its scaled from 0 to 1:
+features['Normalized_DayNum'] = features.groupby('Season')['DayNum'].transform(lambda x: x / x.max())
+features = df.drop(columns=['DayNum'])
+
 print(features)
+
+
+
