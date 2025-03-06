@@ -246,12 +246,12 @@ def reformat_matchup(row):
     if w_id == team1:
         return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['WSeed'], row['LSeed'], 
                           row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'],
-                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses']
+                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'], row['WLoc']
                          ])
     else:
         return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['LSeed'], row['WSeed'], 
                           row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'],
-                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses']
+                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'], row['WLoc']
                          ])
 
 # Apply the function to each row
@@ -261,7 +261,7 @@ matchup_data = merged_final.apply(reformat_matchup, axis=1)
 matchup_data.columns = ['Season','DayNum','Team1', 'Team2', 'Target', 
                         'T1_Seed', 'T2_Seed', 
                         'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
-                        'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses']
+                        'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses', 'WLoc']
 
 def assign_homecourt(row):
     # row['WLoc'] is the location of the winning team.
@@ -294,6 +294,8 @@ matchup_data['HomeCourt'] = matchup_data.apply(assign_homecourt, axis=1)
 matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_Def']) - (matchup_data['T2_roll_Off'] - matchup_data['T2_roll_Def'])
 
 matchup_data.drop(columns=["WLoc"], inplace=True)
+
+matchup_data['Gender'] = 0
 
 # Reorder columns so that 'Target' is the last column
 cols = list(matchup_data.columns)
