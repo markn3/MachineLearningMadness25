@@ -23,7 +23,17 @@ features = pd.get_dummies(features, columns=['HomeCourt'], drop_first=True)
 
 # Normalize DayNum within each season so that its scaled from 0 to 1:
 features['Normalized_DayNum'] = features.groupby('Season')['DayNum'].transform(lambda x: x / x.max())
-features = df.drop(columns=['DayNum'])
+features = features.drop(columns=['DayNum'])
+
+#standardize other numeric columns with StandardScaler:
+numeric_cols = [
+    'Normalized_DayNum', 'T1_Seed', 'T2_Seed',
+    'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
+    'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses', 'net_diff'
+]
+
+scaler = StandardScaler()
+features[numeric_cols] = scaler.fit_transform(features[numeric_cols])
 
 print(features)
 

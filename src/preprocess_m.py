@@ -312,3 +312,6 @@ print("Columns after reordering:", list(matchup_data.columns))
 print(matchup_data)
 
 matchup_data.to_csv("./data/men_dataset.csv", index=False)
+
+#TODO:
+#Remove Seed_diff
