@@ -4,6 +4,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss, roc_auc_score
 
+from sklearn.model_selection import GridSearchCV
+
 df = pd.read_csv("./data/final_df.csv")
 
 # 2. Drop columns you don't want as model features
@@ -20,7 +22,7 @@ X_train, X_val, y_train, y_val = train_test_split(
 # 4. Train a Logistic Regression model
 model = LogisticRegression(
     solver='lbfgs',       # or 'liblinear' if you want simpler approach
-    max_iter=1000,        # increase if you see convergence warnings
+    max_iter=0,        # increase if you see convergence warnings
     random_state=42
 )
 model.fit(X_train, y_train)
@@ -35,6 +37,8 @@ auc = roc_auc_score(y_val, y_pred_proba)
 print(f"Log Loss: {logloss:.4f}")
 print(f"AUC: {auc:.4f}")
 
-# Save the model to a file
-with open('trained_model.pkl', 'wb') as file:
-    pickle.dump(model, file)
+# # Save the model to a file
+# with open('trained_model.pkl', 'wb') as file:
+#     pickle.dump(model, file)
+
+# Grid search
