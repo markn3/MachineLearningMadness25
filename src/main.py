@@ -1,10 +1,12 @@
 import pandas as pd
-import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss, roc_auc_score
 
 from sklearn.model_selection import GridSearchCV
+
+from autogluon.tabular import TabularDataset, TabularPredictor
+
 
 df = pd.read_csv("./data/final_df.csv")
 
@@ -37,6 +39,28 @@ auc = roc_auc_score(y_val, y_pred_proba)
 print(f"Log Loss: {logloss:.4f}")
 print(f"AUC: {auc:.4f}")
 
+
+# Test AutoGlauon
+# Load dataset (replace 'your_data.csv' with your actual file)
+data = TabularDataset("./data/final_df.csv")
+
+# Define target column (change 'target' to your actual label column)
+label_column = "Target"
+
+# Split into train and test sets (80% train, 20% test)
+train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
+
+# Train AutoGluon model
+predictor = TabularPredictor(label=label_column).fit(train_data)
+
+# Evaluate on test set
+predictions = predictor.predict(test_data)
+performance = predictor.evaluate(test_data)
+
+print("Model Performance:", performance)
+
+
+# PICKLE? Or try looking up documentation for models
 # # Save the model to a file
 # with open('trained_model.pkl', 'wb') as file:
 #     pickle.dump(model, file)
