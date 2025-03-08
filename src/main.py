@@ -1,4 +1,5 @@
 import pandas as pd
+import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss, roc_auc_score
@@ -33,3 +34,7 @@ auc = roc_auc_score(y_val, y_pred_proba)
 
 print(f"Log Loss: {logloss:.4f}")
 print(f"AUC: {auc:.4f}")
+
+# Save the model to a file
+with open('trained_model.pkl', 'wb') as file:
+    pickle.dump(model, file)
