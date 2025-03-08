@@ -41,8 +41,6 @@ m_tourney_results.drop(columns=["TeamID"], inplace=True)
 m_tourney_results = m_tourney_results.merge(m_teams, left_on="WTeamID", right_on="TeamID", how="left").rename(columns={"TeamName": "WTeamName"}).drop(columns=["TeamID"])
 m_tourney_results = m_tourney_results.merge(m_teams, left_on="LTeamID", right_on="TeamID", how="left").rename(columns={"TeamName": "LTeamName"}).drop(columns=["TeamID"])
 
-# Create Seed Difference Feature
-m_tourney_results["Seed_Diff"] = m_tourney_results["WSeed"] - m_tourney_results["LSeed"]
 
 # Display Processed Tournament Data
 print("Tournament Data Sample:")
@@ -66,9 +64,6 @@ m_regular_season_results = m_regular_season_results.merge(m_teams, left_on="LTea
 
 # Handle Missing Seeds
 m_regular_season_results.fillna({"WSeed": 0, "LSeed": 0}, inplace=True)
-
-# Create Seed Difference Feature
-m_regular_season_results["Seed_Diff"] = m_regular_season_results["WSeed"] - m_regular_season_results["LSeed"]
 
 # Display Processed Regular Season Data
 print("Regular Season Data Sample:")
