@@ -37,5 +37,8 @@ features[numeric_cols] = scaler.fit_transform(features[numeric_cols])
 
 print(features)
 
+features.to_csv("./data/train.csv", index=False)
+target.to_csv("./data/train.csv", index=False)
+
 
 
