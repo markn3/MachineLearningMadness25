@@ -144,37 +144,32 @@ all_team_games_long.sort_values(by=['Season', 'TeamID', 'DayNum'], inplace=True)
 def compute_rolling_ratings(group):
     roll_off = []
     roll_def = []
-    roll_wins = []
-    roll_losses = []
+    win_ratio = []
     cumulative_off = 0.0
     cumulative_def = 0.0
     cumulative_wins = 0
-    cumulative_losses = 0
     count = 0
     # Iterate over the rows in this group (already sorted by DayNum)
     for off, defe, role in zip(group['OffRtg'], group['DefRtg'], group['Role']):
         if count == 0:
             roll_off.append(np.nan)
             roll_def.append(np.nan)
-            roll_wins.append(np.nan)
-            roll_losses.append(np.nan)
+            win_ratio.append(np.nan)
         else:
             roll_off.append(cumulative_off / count)
             roll_def.append(cumulative_def / count)
-            roll_wins.append(cumulative_wins)
-            roll_losses.append(cumulative_losses)
+            # use smoothing
+            smoothing = 1
+            win_ratio.append(((cumulative_wins + smoothing) / (count + 2 * smoothing)))
         cumulative_off += off
         cumulative_def += defe
         if role == "W":
             cumulative_wins += 1
-        elif role == "L": 
-            cumulative_losses += 1
         count += 1
     group = group.copy()
     group['roll_off'] = roll_off
     group['roll_def'] = roll_def
-    group['roll_wins'] = roll_wins
-    group['roll_losses'] = roll_losses
+    group['win_ratio'] = win_ratio
     return group
 
 # Apply the function group-by-group (for each team in each season)
@@ -182,26 +177,24 @@ all_team_games_long = all_team_games_long.groupby(['Season', 'TeamID']).apply(co
 all_team_games_long.reset_index(drop=True, inplace=True)
 
 # For winning teams: extract and rename the dynamic ratings
-w_dynamic = all_team_games_long[all_team_games_long['Role'] == 'W'][['Season', 'TeamID', 'DayNum', 'roll_off', 'roll_def', 'roll_wins', 'roll_losses']].copy()
+w_dynamic = all_team_games_long[all_team_games_long['Role'] == 'W'][['Season', 'TeamID', 'DayNum', 'roll_off', 'roll_def', 'win_ratio']].copy()
 w_dynamic.rename(columns={
     'TeamID': 'WTeamID',
     'roll_off': 'W_roll_Off',
     'roll_def': 'W_roll_Def',
-    'roll_wins': 'W_roll_Wins',
-    'roll_losses': 'W_roll_Losses'
+    'win_ratio': 'W_win_ratio'
 }, inplace=True)
 
 # Merge the winning team's dynamic ratings back into merged_final
 merged_final = pd.merge(merged_final, w_dynamic, on=['Season', 'WTeamID', 'DayNum'], how='left')
 
 # For losing teams: extract and rename the dynamic ratings
-l_dynamic = all_team_games_long[all_team_games_long['Role'] == 'L'][['Season', 'TeamID', 'DayNum', 'roll_off', 'roll_def', 'roll_wins', 'roll_losses']].copy()
+l_dynamic = all_team_games_long[all_team_games_long['Role'] == 'L'][['Season', 'TeamID', 'DayNum', 'roll_off', 'roll_def', 'win_ratio']].copy()
 l_dynamic.rename(columns={
     'TeamID': 'LTeamID',
     'roll_off': 'L_roll_Off',
     'roll_def': 'L_roll_Def',
-    'roll_wins': 'L_roll_Wins',
-    'roll_losses': 'L_roll_Losses'
+    'win_ratio': 'L_win_ratio'
 }, inplace=True)
 
 # Merge the losing team's dynamic ratings back into merged_final
@@ -215,8 +208,8 @@ print(merged_final.shape)
 nan_count = merged_final[['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def']].isna().sum()
 print(nan_count)
 
-merged_final = merged_final.dropna(subset=['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def', 'L_roll_Wins', 'L_roll_Losses','W_roll_Wins', 'W_roll_Losses'])
-nan_count = merged_final[['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def', 'L_roll_Wins', 'L_roll_Losses','W_roll_Wins', 'W_roll_Losses']].isna().sum()
+merged_final = merged_final.dropna(subset=['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def', 'L_win_ratio','W_win_ratio'])
+nan_count = merged_final[['W_roll_Off','W_roll_Def','L_roll_Off','L_roll_Def', 'L_win_ratio','W_win_ratio']].isna().sum()
 print(nan_count)
 
 cols_to_drop = [
@@ -241,13 +234,13 @@ def reformat_matchup(row):
     # Swap team-related columns to match Team1 and Team2
     if w_id == team1:
         return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['WSeed'], row['LSeed'], 
-                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'],
-                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'], row['WLoc']
+                          row['W_roll_Off'], row['W_roll_Def'], row['W_win_ratio'],
+                          row['L_roll_Off'], row['L_roll_Def'], row['L_win_ratio'],row['WLoc']
                          ])
     else:
         return pd.Series([row['Season'], row['DayNum'], team1, team2, target, row['LSeed'], row['WSeed'], 
-                          row['L_roll_Off'], row['L_roll_Def'], row['L_roll_Wins'], row['L_roll_Losses'],
-                          row['W_roll_Off'], row['W_roll_Def'], row['W_roll_Wins'], row['W_roll_Losses'], row['WLoc']
+                          row['L_roll_Off'], row['L_roll_Def'], row['L_win_ratio'],
+                          row['W_roll_Off'], row['W_roll_Def'], row['W_win_ratio'], row['WLoc']
                          ])
 
 # Apply the function to each row
@@ -256,8 +249,8 @@ matchup_data = merged_final.apply(reformat_matchup, axis=1)
 # Rename the columns
 matchup_data.columns = ['Season','DayNum','Team1', 'Team2', 'Target', 
                         'T1_Seed', 'T2_Seed', 
-                        'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
-                        'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses', 'WLoc']
+                        'T1_roll_Off', 'T1_roll_Def', 'T1_win_ratio',
+                        'T2_roll_Off', 'T2_roll_Def', 'T2_win_ratio','WLoc']
 
 def assign_homecourt(row):
     # row['WLoc'] is the location of the winning team.
@@ -310,8 +303,8 @@ df = df.drop(columns=['DayNum'])
 #standardize other numeric columns with StandardScaler:
 numeric_cols = [
     'Normalized_DayNum', 'T1_Seed', 'T2_Seed',
-    'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
-    'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses', 'net_diff'
+    'T1_roll_Off', 'T1_roll_Def', 'T1_win_ratio',
+    'T2_roll_Off', 'T2_roll_Def', 'T2_win_ratio', 'net_diff'
 ]
 
 scaler = StandardScaler()
@@ -319,4 +312,4 @@ df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
 print(df)
 
-# df.to_csv("./data/w_final.csv", index=False)
+# df.to_csv("./data/final_df.csv", index=False)
