@@ -1,3 +1,4 @@
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import numpy as np
 pd.set_option('display.max_columns', None)
@@ -290,8 +291,6 @@ matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_
 
 matchup_data.drop(columns=["WLoc"], inplace=True)
 
-matchup_data['Gender'] = 0
-
 # Reorder columns so that 'Target' is the last column
 cols = list(matchup_data.columns)
 cols.remove('Target')
@@ -301,7 +300,23 @@ print("Columns after reordering:", list(matchup_data.columns))
 
 print(matchup_data)
 
-matchup_data.to_csv("./data/women_dataset.csv", index=False)
+# one-hot encode 'HomeCourt'
+df = pd.get_dummies(matchup_data, columns=['HomeCourt'], drop_first=True)
 
-# TODO:
-# Seperate men and women into different df
+# Normalize DayNum within each season so that its scaled from 0 to 1:
+df['Normalized_DayNum'] = df.groupby('Season')['DayNum'].transform(lambda x: x / x.max())
+df = df.drop(columns=['DayNum'])
+
+#standardize other numeric columns with StandardScaler:
+numeric_cols = [
+    'Normalized_DayNum', 'T1_Seed', 'T2_Seed',
+    'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
+    'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses', 'net_diff'
+]
+
+scaler = StandardScaler()
+df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+
+print(df)
+
+# df.to_csv("./data/w_final.csv", index=False)

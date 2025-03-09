@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import StandardScaler
+
 pd.set_option('display.max_columns', None)
 
 
@@ -303,6 +305,23 @@ cols.append('Target')
 matchup_data = matchup_data[cols]
 print("Columns after reordering:", list(matchup_data.columns))
 
-print(matchup_data)
+# one-hot encode 'HomeCourt'
+df = pd.get_dummies(matchup_data, columns=['HomeCourt'], drop_first=True)
 
-matchup_data.to_csv("./data/men_dataset.csv", index=False)
+# Normalize DayNum within each season so that its scaled from 0 to 1:
+df['Normalized_DayNum'] = df.groupby('Season')['DayNum'].transform(lambda x: x / x.max())
+df = df.drop(columns=['DayNum'])
+
+#standardize other numeric columns with StandardScaler:
+numeric_cols = [
+    'Normalized_DayNum', 'T1_Seed', 'T2_Seed',
+    'T1_roll_Off', 'T1_roll_Def', 'T1_roll_Wins', 'T1_roll_Losses',
+    'T2_roll_Off', 'T2_roll_Def', 'T2_roll_Wins', 'T2_roll_Losses', 'net_diff'
+]
+
+scaler = StandardScaler()
+df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+
+print(df)
+
+# df.to_csv("./data/m_final.csv", index=False)

@@ -25,9 +25,9 @@ numeric_cols = [
 scaler = StandardScaler()
 df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
-print(df)
+# print(df)
 
-df.to_csv("./data/final_df.csv", index=False)
+# df.to_csv("./data/final_df.csv", index=False)
 
 
 
