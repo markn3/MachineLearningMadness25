@@ -8,7 +8,7 @@ from sklearn.model_selection import GridSearchCV
 from autogluon.tabular import TabularDataset, TabularPredictor
 
 
-df = pd.read_csv("./data/final_df.csv")
+df = pd.read_csv("./data/m_final.csv")
 
 # 2. Drop columns you don't want as model features
 #    Here, we remove Team1, Team2, and Season, but keep the rest (like T1_Seed, T2_Seed, net_diff, etc.).
@@ -42,7 +42,7 @@ print(f"AUC: {auc:.4f}")
 
 # Test AutoGlauon
 # Load dataset (replace 'your_data.csv' with your actual file)
-data = TabularDataset("./data/final_df.csv")
+data = TabularDataset("./data/m_final.csv")
 
 # Define target column (change 'target' to your actual label column)
 label_column = "Target"
