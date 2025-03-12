@@ -296,6 +296,8 @@ print("Columns after reordering:", list(matchup_data.columns))
 # one-hot encode 'HomeCourt'
 df = pd.get_dummies(matchup_data, columns=['HomeCourt'], drop_first=True)
 
+df.to_csv("./data/m_final_raw.csv", index=False)
+
 # Normalize DayNum within each season so that its scaled from 0 to 1:
 df['Normalized_DayNum'] = df.groupby('Season')['DayNum'].transform(lambda x: x / x.max())
 df = df.drop(columns=['DayNum'])
@@ -312,4 +314,4 @@ df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
 print(df)
 
-df.to_csv("./data/m_final.csv", index=False)
+# df.to_csv("./data/m_final.csv", index=False)
