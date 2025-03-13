@@ -85,10 +85,8 @@ for t1, t2 in itertools.combinations(teams, 2):
                 'T2_roll_Def': row['T2_roll_Def'],
                 'T2_win_ratio': row['T2_win_ratio'],
                 'net_diff': row['net_diff'],
-                'Target': row['Target'],
                 'HomeCourt_1': row['HomeCourt_1'],
                 'HomeCourt_2': row['HomeCourt_2'],
-                'DayNum': row['DayNum']
             }
         else:
             # If t1 appears as Team2 in the record, swap the order.
@@ -103,10 +101,8 @@ for t1, t2 in itertools.combinations(teams, 2):
                 'T1_win_ratio': row['T1_win_ratio'],
                 # Optionally, invert these if it makes sense:
                 'net_diff': -row['net_diff'],
-                'Target': -row['Target'],
                 'HomeCourt_2': row['HomeCourt_2'],
                 'HomeCourt_1': row['HomeCourt_1'],
-                'DayNum': row['DayNum']
             }
         matchup_season = row['Season']
     else:
@@ -121,20 +117,19 @@ for t1, t2 in itertools.combinations(teams, 2):
             metricsB = {'Seed': None, 'roll_Off': None, 'roll_Def': None, 'win_ratio': None}
         
         row_details = {
-            'A_Seed': metricsA['Seed'],
-            'A_roll_Off': metricsA['roll_Off'],
-            'A_roll_Def': metricsA['roll_Def'],
-            'A_win_ratio': metricsA['win_ratio'],
-            'B_Seed': metricsB['Seed'],
-            'B_roll_Off': metricsB['roll_Off'],
-            'B_roll_Def': metricsB['roll_Def'],
-            'B_win_ratio': metricsB['win_ratio'],
+            'T1_Seed': metricsA['Seed'],
+            'T1_roll_Off': metricsA['roll_Off'],
+            'T1_roll_Def': metricsA['roll_Def'],
+            'T1_win_ratio': metricsA['win_ratio'],
+            'T2_Seed': metricsB['Seed'],
+            'T2_roll_Off': metricsB['roll_Off'],
+            'T2_roll_Def': metricsB['roll_Def'],
+            'T2_win_ratio': metricsB['win_ratio'],
             'net_diff': (metricsA['roll_Off'] - metricsA['roll_Def']) - (metricsB['roll_Off'] - metricsB['roll_Def']),
-            'Target': None,
-            'HomeCourt_A': False,
-            'HomeCourt_B': False,
-            'DayNum': None
+            'HomeCourt_1': False,
+            'HomeCourt_2': False,
         }
+        
         matchup_season = season
     
     # Build the matchup dictionary.
