@@ -6,114 +6,151 @@ import pandas as pd
 import itertools
 
 # --------------------------
-# Step 1: Load data & generate matchups
+# 1. Load and filter the data
 # --------------------------
-# Load raw game details
-df_m = pd.read_csv("./data/m_final_raw.csv")
-df_m = df_m[(df_m['Season'] < 2025) & (df_m['Season'] >= 2021)]
+df = pd.read_csv("./data/m_final_raw.csv")
+# Filter to include seasons from 2021 up to (but not including) 2025
+df = df[(df['Season'] < 2025) & (df['Season'] >= 2021)]
 
-# Create ordered matchup keys so that order is consistent.
-df_m['Team_lower'] = df_m.apply(lambda row: min(row['Team1'], row['Team2']), axis=1)
-df_m['Team_higher'] = df_m.apply(lambda row: max(row['Team1'], row['Team2']), axis=1)
-
-# For each matchup, select the game with the maximum DayNum (latest game)
-latest_indices = df_m.groupby(['Season', 'Team_lower', 'Team_higher'])['DayNum'].idxmax()
-df_m_latest = df_m.loc[latest_indices]
-
-# Generate all possible matchups for the season based on the teams available in the raw data.
-teams = pd.concat([df_m['Team1'], df_m['Team2']]).unique()
-teams = sorted(teams)
+# For this example, we'll work with season 2021.
 season = 2021
 
-matchup_dicts = [
-    {"Season": season,
-     "Team_lower": min(t1, t2),
-     "Team_higher": max(t1, t2),
-     "matchup": f"{season}_{min(t1, t2)}_{max(t1, t2)}"}
-    for t1, t2 in itertools.combinations(teams, 2)
-]
+# --------------------------
+# 2. Get all unique teams for the season
+# --------------------------
+teams = pd.concat([df['Team1'], df['Team2']]).unique()
+teams = sorted(teams)  # sort to ensure a consistent order
+
+# --------------------------
+# 3. Prepare team metrics (latest game details per team)
+# --------------------------
+def extract_team_rows(df):
+    # Extract metrics when a team is Team1
+    df1 = df[['Season', 'DayNum', 'Team1', 'T1_Seed', 'T1_roll_Off', 'T1_roll_Def', 'T1_win_ratio']].copy()
+    df1 = df1.rename(columns={
+        'Team1': 'Team',
+        'T1_Seed': 'Seed',
+        'T1_roll_Off': 'roll_Off',
+        'T1_roll_Def': 'roll_Def',
+        'T1_win_ratio': 'win_ratio'
+    })
+    # Extract metrics when a team is Team2
+    df2 = df[['Season', 'DayNum', 'Team2', 'T2_Seed', 'T2_roll_Off', 'T2_roll_Def', 'T2_win_ratio']].copy()
+    df2 = df2.rename(columns={
+        'Team2': 'Team',
+        'T2_Seed': 'Seed',
+        'T2_roll_Off': 'roll_Off',
+        'T2_roll_Def': 'roll_Def',
+        'T2_win_ratio': 'win_ratio'
+    })
+    return pd.concat([df1, df2], ignore_index=True)
+
+team_metrics = extract_team_rows(df)
+team_metrics = team_metrics.sort_values('DayNum')  # sorting so that the most recent game is last
+latest_metrics = team_metrics.groupby('Team').last().reset_index()
+
+# --------------------------
+# 4. Generate all matchups and merge in row details
+# --------------------------
+matchup_dicts = []
+for t1, t2 in itertools.combinations(teams, 2):
+    # Determine the lower and higher team IDs for the matchup_id.
+    # If team IDs are numeric strings, we convert them for proper comparison.
+    try:
+        lower = str(min(int(t1), int(t2)))
+        higher = str(max(int(t1), int(t2)))
+    except ValueError:
+        lower = min(t1, t2)
+        higher = max(t1, t2)
+        
+    matchup_id = f"{season}_{lower}_{higher}"
+    
+    # Look for games between these two teams in the season
+    mask = ((df['Team1'] == t1) & (df['Team2'] == t2)) | ((df['Team1'] == t2) & (df['Team2'] == t1))
+    df_match = df[mask]
+    
+    if not df_match.empty:
+        # If there are multiple games, select the one with the highest DayNum (i.e. the most recent)
+        row = df_match.loc[df_match['DayNum'].idxmax()]
+        # Determine the order so that our stored details remain consistent.
+        # We assume that t1 and t2 are the pair in the same order as in the combinations.
+        if row['Team1'] == t1:
+            row_details = {
+                'A_Seed': row['T1_Seed'],
+                'A_roll_Off': row['T1_roll_Off'],
+                'A_roll_Def': row['T1_roll_Def'],
+                'A_win_ratio': row['T1_win_ratio'],
+                'B_Seed': row['T2_Seed'],
+                'B_roll_Off': row['T2_roll_Off'],
+                'B_roll_Def': row['T2_roll_Def'],
+                'B_win_ratio': row['T2_win_ratio'],
+                'net_diff': row['net_diff'],
+                'Target': row['Target'],
+                'HomeCourt_A': row['HomeCourt_1'],
+                'HomeCourt_B': row['HomeCourt_2'],
+                'DayNum': row['DayNum']
+            }
+        else:
+            # If t1 appears as Team2 in the record, swap the order.
+            row_details = {
+                'A_Seed': row['T2_Seed'],
+                'A_roll_Off': row['T2_roll_Off'],
+                'A_roll_Def': row['T2_roll_Def'],
+                'A_win_ratio': row['T2_win_ratio'],
+                'B_Seed': row['T1_Seed'],
+                'B_roll_Off': row['T1_roll_Off'],
+                'B_roll_Def': row['T1_roll_Def'],
+                'B_win_ratio': row['T1_win_ratio'],
+                # Optionally, invert these if it makes sense:
+                'net_diff': -row['net_diff'],
+                'Target': -row['Target'],
+                'HomeCourt_A': row['HomeCourt_2'],
+                'HomeCourt_B': row['HomeCourt_1'],
+                'DayNum': row['DayNum']
+            }
+        matchup_season = row['Season']
+    else:
+        # For matchups that never happened, use each team’s latest metrics.
+        if not latest_metrics[latest_metrics['Team'] == t1].empty:
+            metricsA = latest_metrics[latest_metrics['Team'] == t1].iloc[0]
+        else:
+            metricsA = {'Seed': None, 'roll_Off': None, 'roll_Def': None, 'win_ratio': None, 'Season': season}
+        if not latest_metrics[latest_metrics['Team'] == t2].empty:
+            metricsB = latest_metrics[latest_metrics['Team'] == t2].iloc[0]
+        else:
+            metricsB = {'Seed': None, 'roll_Off': None, 'roll_Def': None, 'win_ratio': None}
+        
+        row_details = {
+            'A_Seed': metricsA['Seed'],
+            'A_roll_Off': metricsA['roll_Off'],
+            'A_roll_Def': metricsA['roll_Def'],
+            'A_win_ratio': metricsA['win_ratio'],
+            'B_Seed': metricsB['Seed'],
+            'B_roll_Off': metricsB['roll_Off'],
+            'B_roll_Def': metricsB['roll_Def'],
+            'B_win_ratio': metricsB['win_ratio'],
+            'net_diff': None,
+            'Target': None,
+            'HomeCourt_A': None,
+            'HomeCourt_B': None,
+            'DayNum': None
+        }
+        matchup_season = season
+    
+    # Build the matchup dictionary.
+    matchup_dict = {
+        "Season": matchup_season,
+        "Team_lower": lower,
+        "Team_higher": higher,
+        "matchup": matchup_id,
+        "TeamA": t1,
+        "TeamB": t2
+    }
+    matchup_dict.update(row_details)
+    matchup_dicts.append(matchup_dict)
+
+# --------------------------
+# 5. Create the final DataFrame
+# --------------------------
 m_matchups_df = pd.DataFrame(matchup_dicts)
-
-# Merge generated matchups with the latest game details (if available)
-m_matchups_full = pd.merge(m_matchups_df, df_m_latest, on=["Season", "Team_lower", "Team_higher"], how="left")
-
-# --------------------------
-# Step 2: Build a lookup table for each team’s latest metrics
-# --------------------------
-# When a team appears as Team1
-df_team1 = df_m[['Season', 'DayNum', 'Team1', 'T1_Seed', 'T1_roll_Off', 'T1_roll_Def', 'T1_win_ratio']].rename(
-    columns={'Team1': 'Team', 
-             'T1_Seed': 'Seed', 
-             'T1_roll_Off': 'roll_Off', 
-             'T1_roll_Def': 'roll_Def', 
-             'T1_win_ratio': 'win_ratio'}
-)
-
-# When a team appears as Team2
-df_team2 = df_m[['Season', 'DayNum', 'Team2', 'T2_Seed', 'T2_roll_Off', 'T2_roll_Def', 'T2_win_ratio']].rename(
-    columns={'Team2': 'Team', 
-             'T2_Seed': 'Seed', 
-             'T2_roll_Off': 'roll_Off', 
-             'T2_roll_Def': 'roll_Def', 
-             'T2_win_ratio': 'win_ratio'}
-)
-
-# Combine and then get each team’s latest metrics based on the maximum DayNum.
-df_team_all = pd.concat([df_team1, df_team2])
-latest_team_metrics = (
-    df_team_all.sort_values('DayNum')
-    .groupby(['Season', 'Team'], as_index=False)
-    .last()
-)
-# latest_team_metrics now has one row per team per season with their latest metrics
-
-# --------------------------
-# Step 3: Merge individual team metrics for missing matchups and calculate matchup features
-# --------------------------
-# For teams with no direct matchup game, we merge in their latest individual metrics.
-# Merge for Team_lower metrics:
-m_matchups_full = pd.merge(
-    m_matchups_full, 
-    latest_team_metrics, 
-    left_on=['Season', 'Team_lower'], 
-    right_on=['Season', 'Team'], 
-    how='left',
-    suffixes=('', '_lower')
-)
-# Rename the merged columns for clarity.
-m_matchups_full.rename(columns={
-    'Seed': 'Seed_lower',
-    'roll_Off': 'roll_Off_lower',
-    'roll_Def': 'roll_Def_lower',
-    'win_ratio': 'win_ratio_lower'
-}, inplace=True)
-m_matchups_full.drop(columns=['Team'], inplace=True)
-
-# Merge for Team_higher metrics:
-m_matchups_full = pd.merge(
-    m_matchups_full,
-    latest_team_metrics,
-    left_on=['Season', 'Team_higher'],
-    right_on=['Season', 'Team'],
-    how='left',
-    suffixes=('', '_higher')
-)
-m_matchups_full.rename(columns={
-    'Seed': 'Seed_higher',
-    'roll_Off': 'roll_Off_higher',
-    'roll_Def': 'roll_Def_higher',
-    'win_ratio': 'win_ratio_higher'
-}, inplace=True)
-m_matchups_full.drop(columns=['Team'], inplace=True)
-
-# Now, for matchups where there was no direct game, you can compute the desired metrics
-# using the individual team metrics.
-# For example, let’s define net_diff as the difference in win_ratio:
-m_matchups_full['net_diff'] = m_matchups_full['win_ratio_lower'].fillna(0) - m_matchups_full['win_ratio_higher'].fillna(0)
-
-# And as an example, define HomeCourt_1 and HomeCourt_2 based on team seeds
-# (you can modify this logic to suit your actual definition)
-m_matchups_full['HomeCourt_1'] = (m_matchups_full['Seed_lower'] < m_matchups_full['Seed_higher']).astype(int)
-m_matchups_full['HomeCourt_2'] = (m_matchups_full['Seed_lower'] > m_matchups_full['Seed_higher']).astype(int)
-
-print(m_matchups_full)
+print(m_matchups_df)
