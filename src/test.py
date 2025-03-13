@@ -76,36 +76,36 @@ for t1, t2 in itertools.combinations(teams, 2):
         # We assume that t1 and t2 are the pair in the same order as in the combinations.
         if row['Team1'] == t1:
             row_details = {
-                'A_Seed': row['T1_Seed'],
-                'A_roll_Off': row['T1_roll_Off'],
-                'A_roll_Def': row['T1_roll_Def'],
-                'A_win_ratio': row['T1_win_ratio'],
-                'B_Seed': row['T2_Seed'],
-                'B_roll_Off': row['T2_roll_Off'],
-                'B_roll_Def': row['T2_roll_Def'],
-                'B_win_ratio': row['T2_win_ratio'],
+                'T1_Seed': row['T1_Seed'],
+                'T1_roll_Off': row['T1_roll_Off'],
+                'T1_roll_Def': row['T1_roll_Def'],
+                'T1_win_ratio': row['T1_win_ratio'],
+                'T2_Seed': row['T2_Seed'],
+                'T2_roll_Off': row['T2_roll_Off'],
+                'T2_roll_Def': row['T2_roll_Def'],
+                'T2_win_ratio': row['T2_win_ratio'],
                 'net_diff': row['net_diff'],
                 'Target': row['Target'],
-                'HomeCourt_A': row['HomeCourt_1'],
-                'HomeCourt_B': row['HomeCourt_2'],
+                'HomeCourt_1': row['HomeCourt_1'],
+                'HomeCourt_2': row['HomeCourt_2'],
                 'DayNum': row['DayNum']
             }
         else:
             # If t1 appears as Team2 in the record, swap the order.
             row_details = {
-                'A_Seed': row['T2_Seed'],
-                'A_roll_Off': row['T2_roll_Off'],
-                'A_roll_Def': row['T2_roll_Def'],
-                'A_win_ratio': row['T2_win_ratio'],
-                'B_Seed': row['T1_Seed'],
-                'B_roll_Off': row['T1_roll_Off'],
-                'B_roll_Def': row['T1_roll_Def'],
-                'B_win_ratio': row['T1_win_ratio'],
+                'T2_Seed': row['T2_Seed'],
+                'T2_roll_Off': row['T2_roll_Off'],
+                'T2_roll_Def': row['T2_roll_Def'],
+                'T2_win_ratio': row['T2_win_ratio'],
+                'T1_Seed': row['T1_Seed'],
+                'T1_roll_Off': row['T1_roll_Off'],
+                'T1_roll_Def': row['T1_roll_Def'],
+                'T1_win_ratio': row['T1_win_ratio'],
                 # Optionally, invert these if it makes sense:
                 'net_diff': -row['net_diff'],
                 'Target': -row['Target'],
-                'HomeCourt_A': row['HomeCourt_2'],
-                'HomeCourt_B': row['HomeCourt_1'],
+                'HomeCourt_2': row['HomeCourt_2'],
+                'HomeCourt_1': row['HomeCourt_1'],
                 'DayNum': row['DayNum']
             }
         matchup_season = row['Season']
@@ -129,10 +129,10 @@ for t1, t2 in itertools.combinations(teams, 2):
             'B_roll_Off': metricsB['roll_Off'],
             'B_roll_Def': metricsB['roll_Def'],
             'B_win_ratio': metricsB['win_ratio'],
-            'net_diff': (metricsA['roll_Off'] - metricsA['roll_Def']) - (metricsB['roll_Off'] - metricsB['T2_roll_Def']),
+            'net_diff': (metricsA['roll_Off'] - metricsA['roll_Def']) - (metricsB['roll_Off'] - metricsB['roll_Def']),
             'Target': None,
-            'HomeCourt_A': None,
-            'HomeCourt_B': None,
+            'HomeCourt_A': False,
+            'HomeCourt_B': False,
             'DayNum': None
         }
         matchup_season = season
