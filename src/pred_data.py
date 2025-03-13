@@ -2,38 +2,68 @@ import pandas as pd
 import itertools
 
 
+df = pd.read_csv("./data/m_final_raw.csv")  # Load mens dataframe
+print(df)
 
-
-
-s_df = pd.read_csv("./data/SampleSubmissionStage1.csv")  # Load mens dataframe
-print(s_df.head())
-
-s_df[['Season', 'Team1', 'Team2']] = s_df['ID'].str.split('_', expand=True)
-
-# Convert to integers for easier comparison
-s_df[['Season', 'Team1', 'Team2']] = s_df[['Season', 'Team1', 'Team2']].astype(int)
-
-s_df.drop(columns=["Pred"], inplace=True)
-
-s_df = s_df[s_df['Season'] == 2021]
-print(s_df)
+df = df[(2025 > df['Season']) & (df['Season']>=2021)] # get data from season 2021 onwards
 
 # Get all unique teams for the season
-num = pd.concat([s_df['Team1'], s_df['Team2']]).nunique()
-print(num)
+teams = pd.concat([df['Team1'], df['Team2']]).unique()
+teams = sorted(teams)  # sort to ensure order
 
+# Specify the season (assuming one season, or loop over multiple seasons if needed)
+season = 2021
 
-# New plan: Use the SampleSubmissionStage1 to get the team matches
-# Note: get IDs for men and women
+# Generate all possible matchups with the lower team ID always in the middle
+# and create a dictionary for each matchup
+matchup_dicts = [
+    {
+        "Season": season,
+        "Team_lower": min(t1, t2),
+        "Team_higher": max(t1, t2),
+        "matchup": f"{season}_{min(t1, t2)}_{max(t1, t2)}"
+    }
+    for t1, t2 in itertools.combinations(teams, 2)
+]
 
+# Create a new DataFrame from the list of dictionaries
+m_matchups_df = pd.DataFrame(matchup_dicts)
 
-m_df = pd.read_csv("./data/m_final_raw.csv")  # Load mens dataframe
-w_df = pd.read_csv("./data/w_final_raw.csv") 
+print(m_matchups_df)
 
+df = pd.read_csv("./data/w_final_raw.csv")
 
-m_df = m_df[m_df['Season']==2021]
-w_df = w_df[w_df['Season']==2021]
-all_games = pd.concat([m_df, w_df], ignore_index=True)
+df = df[(2025 > df['Season']) & (df['Season']>=2021)] # get data from season 2021 onwards
+
+# Get all unique teams for the season
+teams = pd.concat([df['Team1'], df['Team2']]).unique()
+teams = sorted(teams)  # sort to ensure order
+
+# Specify the season (assuming one season, or loop over multiple seasons if needed)
+season = 2021
+
+# Generate all possible matchups with the lower team ID always in the middle
+# and create a dictionary for each matchup
+matchup_dicts = [
+    {
+        "Season": season,
+        "Team_lower": min(t1, t2),
+        "Team_higher": max(t1, t2),
+        "matchup": f"{season}_{min(t1, t2)}_{max(t1, t2)}"
+    }
+    for t1, t2 in itertools.combinations(teams, 2)
+]
+
+# Create a new DataFrame from the list of dictionaries
+matchups_df = pd.DataFrame(matchup_dicts)
+
+print(matchups_df)
+
+all_games = pd.concat([m_matchups_df, matchups_df], ignore_index=True)
 
 print(all_games)
+
+# Get all unique teams for the season
+teams = pd.concat([all_games['Team_lower'], all_games['Team_higher']]).nunique()
+print(teams)
 
