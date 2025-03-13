@@ -129,7 +129,7 @@ for t1, t2 in itertools.combinations(teams, 2):
             'B_roll_Off': metricsB['roll_Off'],
             'B_roll_Def': metricsB['roll_Def'],
             'B_win_ratio': metricsB['win_ratio'],
-            'net_diff': None,
+            'net_diff': (metricsA['roll_Off'] - metricsA['roll_Def']) - (metricsB['roll_Off'] - metricsB['T2_roll_Def']),
             'Target': None,
             'HomeCourt_A': None,
             'HomeCourt_B': None,
