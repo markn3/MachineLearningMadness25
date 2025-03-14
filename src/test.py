@@ -152,6 +152,23 @@ def get_season_matchups(season, csv_path="./data/m_final_raw.csv"):
     return m_matchups_df
 
 # Example usage:
-matchups_2021 = get_season_matchups(2021)
-print(matchups_2021)
+# [58653
+m_matchups_2021 = get_season_matchups(2021)
+w_matchups_2021 = get_season_matchups(2021, "./data/w_final_raw.csv")
+all_games = pd.concat([m_matchups_2021, w_matchups_2021], ignore_index=True)
+
+m_matchups_2022 = get_season_matchups(2022)
+w_matchups_2022 = get_season_matchups(2022, "./data/w_final_raw.csv")
+all_games = pd.concat([m_matchups_2022, w_matchups_2022], ignore_index=True)
+
+m_matchups_2023 = get_season_matchups(2023)
+w_matchups_2023 = get_season_matchups(2023, "./data/w_final_raw.csv")
+all_games = pd.concat([m_matchups_2023, w_matchups_2023], ignore_index=True)
+
+m_matchups_2024 = get_season_matchups(2024)
+w_matchups_2024 = get_season_matchups(2024, "./data/w_final_raw.csv")
+all_games = pd.concat([m_matchups_2024, w_matchups_2024], ignore_index=True)
+
+
+print(all_games)
 
