@@ -173,6 +173,7 @@ all_games_1_2 = pd.concat([all_games_2021, all_games_2022], ignore_index=True)
 all_games_1_3 = pd.concat([all_games_1_2, all_games_2023], ignore_index=True)
 all_games_1_4 = pd.concat([all_games_1_3, all_games_2024], ignore_index=True)
 
+all_games_1_4.to_csv("./data/pred_matchups.csv", index=False)
 
 print(all_games_1_4)
 
