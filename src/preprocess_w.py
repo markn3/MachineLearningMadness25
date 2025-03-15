@@ -296,11 +296,7 @@ print(matchup_data)
 # one-hot encode 'HomeCourt'
 df = pd.get_dummies(matchup_data, columns=['HomeCourt'], drop_first=True)
 
-df.to_csv("./data/w_final_raw.csv", index=False)
-
-# # Normalize DayNum within each season so that its scaled from 0 to 1:
-# df['Normalized_DayNum'] = df.groupby('Season')['DayNum'].transform(lambda x: x / x.max())
-# df = df.drop(columns=['DayNum'])
+# df.to_csv("./data/w_final_raw.csv", index=False)
 
 # #standardize other numeric columns with StandardScaler:
 # numeric_cols = [
