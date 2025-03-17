@@ -173,8 +173,6 @@ w_matchups_1_3 = pd.concat([w_matchups_1_2, w_matchups_2023], ignore_index=True)
 w_matchups_1_4 = pd.concat([w_matchups_1_3, w_matchups_2024], ignore_index=True)
 
 
-
-
 m_matchups_1_4.to_csv("./data/m_matchups_1_4.csv", index=False)
 w_matchups_1_4.to_csv("./data/w_matchups_1_4.csv", index=False)
 
