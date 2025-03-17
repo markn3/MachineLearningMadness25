@@ -8,7 +8,7 @@ from sklearn.model_selection import GridSearchCV
 from autogluon.tabular import TabularDataset, TabularPredictor
 
 
-df = pd.read_csv("./data/m_final.csv")
+df = pd.read_csv("./data/m_final_df.csv")
 
 # 2. Drop columns you don't want as model features
 #    Here, we remove Team1, Team2, and Season, but keep the rest (like T1_Seed, T2_Seed, net_diff, etc.).
@@ -41,23 +41,22 @@ print(f"AUC: {auc:.4f}")
 
 
 # Test AutoGlauon
-# Load dataset (replace 'your_data.csv' with your actual file)
-# data = TabularDataset("./data/m_final.csv")
+data = TabularDataset("./data/m_final_df.csv")
 
-# # Define target column (change 'target' to your actual label column)
-# label_column = "Target"
+# Define target column (change 'target' to your actual label column)
+label_column = "Target"
 
-# # Split into train and test sets (80% train, 20% test)
-# train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
+# Split into train and test sets (80% train, 20% test)
+train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
 
-# # Train AutoGluon model
-# predictor = TabularPredictor(label=label_column).fit(train_data)
+# Train AutoGluon model
+predictor = TabularPredictor(label=label_column).fit(train_data)
 
-# # Evaluate on test set
-# predictions = predictor.predict(test_data)
-# performance = predictor.evaluate(test_data)
+# Evaluate on test set
+predictions = predictor.predict(test_data)
+performance = predictor.evaluate(test_data)
 
-# print("Model Performance:", performance)
+print("Model Performance:", performance)
 
 
 # PICKLE? Or try looking up documentation for models

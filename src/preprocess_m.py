@@ -300,7 +300,7 @@ df = pd.get_dummies(matchup_data, columns=['HomeCourt'], drop_first=True)
 
 #standardize other numeric columns with StandardScaler:
 numeric_cols = [
-    'Normalized_DayNum', 'T1_Seed', 'T2_Seed',
+    'T1_Seed', 'T2_Seed',
     'T1_roll_Off', 'T1_roll_Def', 'T1_win_ratio',
     'T2_roll_Off', 'T2_roll_Def', 'T2_win_ratio', 'net_diff'
 ]
@@ -310,4 +310,4 @@ df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
 print(df)
 
-# df.to_csv("./data/m_final.csv", index=False)
+df.to_csv("./data/m_final_df.csv", index=False)

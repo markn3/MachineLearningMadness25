@@ -151,29 +151,33 @@ def get_season_matchups(season, csv_path="./data/m_final_raw.csv"):
     m_matchups_df = pd.DataFrame(matchup_dicts)
     return m_matchups_df
 
-# Example usage:
-# [58653
+# TODO: Keep men and women seperate and then after getting predictions, merge them into final predictions
+
+
 m_matchups_2021 = get_season_matchups(2021)
-w_matchups_2021 = get_season_matchups(2021, "./data/w_final_raw.csv")
-all_games_2021 = pd.concat([m_matchups_2021, w_matchups_2021], ignore_index=True)
-
 m_matchups_2022 = get_season_matchups(2022)
-w_matchups_2022 = get_season_matchups(2022, "./data/w_final_raw.csv")
-all_games_2022 = pd.concat([m_matchups_2022, w_matchups_2022], ignore_index=True)
-
 m_matchups_2023 = get_season_matchups(2023)
-w_matchups_2023 = get_season_matchups(2023, "./data/w_final_raw.csv")
-all_games_2023 = pd.concat([m_matchups_2023, w_matchups_2023], ignore_index=True)
-
 m_matchups_2024 = get_season_matchups(2024)
+m_matchups_1_2 = pd.concat([m_matchups_2021, m_matchups_2022], ignore_index=True)
+m_matchups_1_3 = pd.concat([m_matchups_1_2, m_matchups_2023], ignore_index=True)
+m_matchups_1_4 = pd.concat([m_matchups_1_3, m_matchups_2024], ignore_index=True)
+
+
+
+w_matchups_2021 = get_season_matchups(2021, "./data/w_final_raw.csv")
+w_matchups_2022 = get_season_matchups(2022, "./data/w_final_raw.csv")
+w_matchups_2023 = get_season_matchups(2023, "./data/w_final_raw.csv")
 w_matchups_2024 = get_season_matchups(2024, "./data/w_final_raw.csv")
-all_games_2024 = pd.concat([m_matchups_2024, w_matchups_2024], ignore_index=True)
+w_matchups_1_2 = pd.concat([w_matchups_2021, w_matchups_2022], ignore_index=True)
+w_matchups_1_3 = pd.concat([w_matchups_1_2, w_matchups_2023], ignore_index=True)
+w_matchups_1_4 = pd.concat([w_matchups_1_3, w_matchups_2024], ignore_index=True)
 
-all_games_1_2 = pd.concat([all_games_2021, all_games_2022], ignore_index=True)
-all_games_1_3 = pd.concat([all_games_1_2, all_games_2023], ignore_index=True)
-all_games_1_4 = pd.concat([all_games_1_3, all_games_2024], ignore_index=True)
 
-all_games_1_4.to_csv("./data/pred_matchups.csv", index=False)
 
-print(all_games_1_4)
+
+m_matchups_1_4.to_csv("./data/m_matchups_1_4.csv", index=False)
+w_matchups_1_4.to_csv("./data/w_matchups_1_4.csv", index=False)
+
+m_matchups_1_4
+
 
