@@ -9,7 +9,9 @@ print(m_predictor)
 df = pd.read_csv("./data/m_matchups_1_4.csv")
 print(df)
 # Get the predicted probabilities for the positive class (Team1 wins)
-# predictions = m_predictor.predict_proba(df)
+df.rename(columns={"TeamA": "Team1", "TeamB":"Team2"}, inplace=True)
+predictions = m_predictor.predict_proba(df)
+print(predictions)
 
 # # Typically, predictions will be a DataFrame with columns for each class.
 # # If your target is binary (0 and 1) and you've set up your predictor such that 1 = Team1 wins,

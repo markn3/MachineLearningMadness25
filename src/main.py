@@ -46,20 +46,20 @@ data = TabularDataset("./data/m_final_df.csv")
 
 print(df)
 
-# # Define target column (change 'target' to your actual label column)
-# label_column = "Target"
+# Define target column (change 'target' to your actual label column)
+label_column = "Target"
 
-# # Split into train and test sets (80% train, 20% test)
-# train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
+# Split into train and test sets (80% train, 20% test)
+train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
 
-# # Train AutoGluon model
-# predictor = TabularPredictor(label=label_column).fit(train_data)
+# Train AutoGluon model
+predictor = TabularPredictor(label=label_column).fit(train_data)
 
-# # Evaluate on test set
-# predictions = predictor.predict(test_data)
-# performance = predictor.evaluate(test_data)
+# Evaluate on test set
+predictions = predictor.predict(test_data)
+performance = predictor.evaluate(test_data)
 
-# print("Model Performance:", performance)
+print("Model Performance:", performance)
 
 
 # PICKLE? Or try looking up documentation for models
