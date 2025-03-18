@@ -15,21 +15,23 @@ def get_predictions(gender, season):
 
     return predictions
 
-m_predictor = TabularPredictor.load("./data/AutogluonModels/m_pred/")
+# Men predictions
+m_2021 = get_predictions("m", 2021)
+m_2022 = get_predictions("m", 2022)
+m_2023 = get_predictions("m", 2023)
+m_2024 = get_predictions("m", 2024)
 
-m_matches = pd.read_csv("./data/m_matchups_1_4.csv")
-# Get the predicted probabilities for the positive class (Team1 wins)
-m_matches.rename(columns={"TeamA": "Team1", "TeamB":"Team2"}, inplace=True)
-m_predictions = m_predictor.predict_proba(m_matches)
+# Women predictions
+w_2021 = get_predictions("w", 2021)
+w_2022 = get_predictions("w", 2022)
+w_2023 = get_predictions("w", 2023)
+w_2024 = get_predictions("w", 2024)
 
-
-m_pred = m_matches[['matchup']].copy()
-m_pred.rename({"matchup": "ID"}, inplace=True)
-m_pred['Pred'] = m_predictions.iloc[:, 0]  # Use iloc for column selection
-print(m_pred)
-
-# submission.to_csv("submission.csv", index=False)
-
-# # Now, you can create the final submission file with the ID and Pred columns.
-# submission = matchup_features_df[["ID", "Pred"]]
-# submission.to_csv("submission.csv", index=False)
+# Combine them all by year
+all_games_21 = pd.concat([m_2021, w_2021], ignore_index=True)
+all_games_22 = pd.concat([m_2022, w_2022], ignore_index=True)
+all_games_23 = pd.concat([m_2023, w_2023], ignore_index=True)
+all_games_24 = pd.concat([m_2024, w_2024], ignore_index=True)
+all_games = pd.concat([all_games_21, all_games_22], ignore_index=True)
+all_games = pd.concat([all_games, all_games_23], ignore_index=True)
+all_games = pd.concat([all_games, all_games_24], ignore_index=True)
