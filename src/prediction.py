@@ -3,6 +3,18 @@ from autogluon.tabular import TabularPredictor
 
 # Load your trained model (if not already loaded)
 
+
+def get_predictions(gender, season):
+    predictor = TabularPredictor.load(f"./data/AutogluonModels/{gender}_pred/")
+    matches = pd.read_csv(f"./data/{gender}_matchups_{season}.csv")
+    raw_predictions = predictor.predict_proba(matches)
+
+    predictions = matches[['matchup']].copy()
+    predictions.rename({"matchup":"ID"}, inplace=True)
+    predictions['Pred'] = raw_predictions.iloc[:, 0]
+
+    return predictions
+
 m_predictor = TabularPredictor.load("./data/AutogluonModels/m_pred/")
 
 m_matches = pd.read_csv("./data/m_matchups_1_4.csv")
