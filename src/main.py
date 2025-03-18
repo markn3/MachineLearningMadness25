@@ -6,6 +6,7 @@ from sklearn.metrics import log_loss, roc_auc_score
 from sklearn.model_selection import GridSearchCV
 
 from autogluon.tabular import TabularDataset, TabularPredictor
+pd.set_option('display.max_columns', None)
 
 
 df = pd.read_csv("./data/m_final_df.csv")
@@ -43,20 +44,22 @@ print(f"AUC: {auc:.4f}")
 # Test AutoGlauon
 data = TabularDataset("./data/m_final_df.csv")
 
-# Define target column (change 'target' to your actual label column)
-label_column = "Target"
+print(df)
 
-# Split into train and test sets (80% train, 20% test)
-train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
+# # Define target column (change 'target' to your actual label column)
+# label_column = "Target"
 
-# Train AutoGluon model
-predictor = TabularPredictor(label=label_column).fit(train_data)
+# # Split into train and test sets (80% train, 20% test)
+# train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
 
-# Evaluate on test set
-predictions = predictor.predict(test_data)
-performance = predictor.evaluate(test_data)
+# # Train AutoGluon model
+# predictor = TabularPredictor(label=label_column).fit(train_data)
 
-print("Model Performance:", performance)
+# # Evaluate on test set
+# predictions = predictor.predict(test_data)
+# performance = predictor.evaluate(test_data)
+
+# print("Model Performance:", performance)
 
 
 # PICKLE? Or try looking up documentation for models

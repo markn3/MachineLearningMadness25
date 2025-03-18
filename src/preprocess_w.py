@@ -282,7 +282,7 @@ matchup_data['HomeCourt'] = matchup_data.apply(assign_homecourt, axis=1)
 
 matchup_data['net_diff'] = (matchup_data['T1_roll_Off'] - matchup_data['T1_roll_Def']) - (matchup_data['T2_roll_Off'] - matchup_data['T2_roll_Def'])
 
-matchup_data.drop(columns=["WLoc"], inplace=True)
+matchup_data.drop(columns=["WLoc", "DayNum"], inplace=True)
 
 # Reorder columns so that 'Target' is the last column
 cols = list(matchup_data.columns)

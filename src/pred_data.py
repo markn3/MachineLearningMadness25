@@ -155,27 +155,29 @@ def get_season_matchups(season, csv_path="./data/m_final_raw.csv"):
 
 
 m_matchups_2021 = get_season_matchups(2021)
-m_matchups_2022 = get_season_matchups(2022)
-m_matchups_2023 = get_season_matchups(2023)
-m_matchups_2024 = get_season_matchups(2024)
-m_matchups_1_2 = pd.concat([m_matchups_2021, m_matchups_2022], ignore_index=True)
-m_matchups_1_3 = pd.concat([m_matchups_1_2, m_matchups_2023], ignore_index=True)
-m_matchups_1_4 = pd.concat([m_matchups_1_3, m_matchups_2024], ignore_index=True)
+# m_matchups_2022 = get_season_matchups(2022)
+# m_matchups_2023 = get_season_matchups(2023)
+# m_matchups_2024 = get_season_matchups(2024)
+# m_matchups_1_2 = pd.concat([m_matchups_2021, m_matchups_2022], ignore_index=True)
+# m_matchups_1_3 = pd.concat([m_matchups_1_2, m_matchups_2023], ignore_index=True)
+# m_matchups_1_4 = pd.concat([m_matchups_1_3, m_matchups_2024], ignore_index=True)
+
+m_matchups_2021.drop(columns=["Team_lower", "Team_higher"], inplace=True)
 
 
 
-w_matchups_2021 = get_season_matchups(2021, "./data/w_final_raw.csv")
-w_matchups_2022 = get_season_matchups(2022, "./data/w_final_raw.csv")
-w_matchups_2023 = get_season_matchups(2023, "./data/w_final_raw.csv")
-w_matchups_2024 = get_season_matchups(2024, "./data/w_final_raw.csv")
-w_matchups_1_2 = pd.concat([w_matchups_2021, w_matchups_2022], ignore_index=True)
-w_matchups_1_3 = pd.concat([w_matchups_1_2, w_matchups_2023], ignore_index=True)
-w_matchups_1_4 = pd.concat([w_matchups_1_3, w_matchups_2024], ignore_index=True)
+# w_matchups_2021 = get_season_matchups(2021, "./data/w_final_raw.csv")
+# w_matchups_2022 = get_season_matchups(2022, "./data/w_final_raw.csv")
+# w_matchups_2023 = get_season_matchups(2023, "./data/w_final_raw.csv")
+# w_matchups_2024 = get_season_matchups(2024, "./data/w_final_raw.csv")
+# w_matchups_1_2 = pd.concat([w_matchups_2021, w_matchups_2022], ignore_index=True)
+# w_matchups_1_3 = pd.concat([w_matchups_1_2, w_matchups_2023], ignore_index=True)
+# w_matchups_1_4 = pd.concat([w_matchups_1_3, w_matchups_2024], ignore_index=True)
 
 
-m_matchups_1_4.to_csv("./data/m_matchups_1_4.csv", index=False)
-w_matchups_1_4.to_csv("./data/w_matchups_1_4.csv", index=False)
+# m_matchups_1_4.to_csv("./data/m_matchups_1_4.csv", index=False)
+# w_matchups_1_4.to_csv("./data/w_matchups_1_4.csv", index=False)
 
-m_matchups_1_4
+print(m_matchups_2021)
 
 
