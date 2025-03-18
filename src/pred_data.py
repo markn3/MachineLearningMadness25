@@ -148,36 +148,27 @@ def get_season_matchups(season, csv_path="./data/m_final_raw.csv"):
     # --------------------------
     # 5. Create the final DataFrame
     # --------------------------
-    m_matchups_df = pd.DataFrame(matchup_dicts)
-    return m_matchups_df
+    matchups_df = pd.DataFrame(matchup_dicts)
+    return matchups_df
 
 # TODO: Keep men and women seperate and then after getting predictions, merge them into final predictions
+def get_dataframe(season, gender, csv_path="./data/m_final_raw.csv"):
+    mathchups = get_season_matchups(season, csv_path)
+    mathchups.drop(columns=["Team_lower", "Team_higher"], inplace=True)
+    mathchups.rename(columns={"TeamA": "Team1", "TeamB":"Team2"}, inplace=True)
+    mathchups.to_csv(f"./data/{gender}_matchups_{season}.csv", index=False)
 
+# Mens
+get_dataframe(2021, "m")
+get_dataframe(2022, "m")
+get_dataframe(2023, "m")
+get_dataframe(2024, "m")
 
-m_matchups_2021 = get_season_matchups(2021)
-m_matchups_2022 = get_season_matchups(2022)
-m_matchups_2023 = get_season_matchups(2023)
-m_matchups_2024 = get_season_matchups(2024)
-m_matchups_1_2 = pd.concat([m_matchups_2021, m_matchups_2022], ignore_index=True)
-m_matchups_1_3 = pd.concat([m_matchups_1_2, m_matchups_2023], ignore_index=True)
-m_matchups_1_4 = pd.concat([m_matchups_1_3, m_matchups_2024], ignore_index=True)
+# Womens
+get_dataframe(2021, "w", "./data/w_final_raw.csv")
+get_dataframe(2022, "w", "./data/w_final_raw.csv")
+get_dataframe(2023, "w", "./data/w_final_raw.csv")
+get_dataframe(2024, "w", "./data/w_final_raw.csv")
 
-m_matchups_1_4.drop(columns=["Team_lower", "Team_higher"], inplace=True)
-
-
-
-# w_matchups_2021 = get_season_matchups(2021, "./data/w_final_raw.csv")
-# w_matchups_2022 = get_season_matchups(2022, "./data/w_final_raw.csv")
-# w_matchups_2023 = get_season_matchups(2023, "./data/w_final_raw.csv")
-# w_matchups_2024 = get_season_matchups(2024, "./data/w_final_raw.csv")
-# w_matchups_1_2 = pd.concat([w_matchups_2021, w_matchups_2022], ignore_index=True)
-# w_matchups_1_3 = pd.concat([w_matchups_1_2, w_matchups_2023], ignore_index=True)
-# w_matchups_1_4 = pd.concat([w_matchups_1_3, w_matchups_2024], ignore_index=True)
-
-m_matchups_1_4.rename(columns={"TeamA": "Team1", "TeamB":"Team2"}, inplace=True)
-m_matchups_1_4.to_csv("./data/m_matchups_1_4.csv", index=False)
-# w_matchups_1_4.to_csv("./data/w_matchups_1_4.csv", index=False)
-
-print(m_matchups_1_4)
 
 
