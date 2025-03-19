@@ -291,12 +291,9 @@ cols.append('Target')
 matchup_data = matchup_data[cols]
 print("Columns after reordering:", list(matchup_data.columns))
 
-print(matchup_data)
 
 # one-hot encode 'HomeCourt'
 df = pd.get_dummies(matchup_data, columns=['HomeCourt'], drop_first=True)
-
-# df.to_csv("./data/w_final_raw.csv", index=False)
 
 #standardize other numeric columns with StandardScaler:
 numeric_cols = [
@@ -308,6 +305,5 @@ numeric_cols = [
 scaler = StandardScaler()
 df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
 
-# print(df)
 
 df.to_csv("./data/w_final_df.csv", index=False)

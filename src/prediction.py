@@ -35,3 +35,5 @@ all_games_24 = pd.concat([m_2024, w_2024], ignore_index=True)
 all_games = pd.concat([all_games_21, all_games_22], ignore_index=True)
 all_games = pd.concat([all_games, all_games_23], ignore_index=True)
 all_games = pd.concat([all_games, all_games_24], ignore_index=True)
+
+# TODO: Train womens
