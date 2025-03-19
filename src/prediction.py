@@ -10,14 +10,13 @@ def get_predictions(gender, season):
     raw_predictions = predictor.predict_proba(matches)
 
     predictions = matches[['matchup']].copy()
-    predictions.rename({"matchup":"ID"}, inplace=True)
+    predictions.rename(columns={"matchup":"ID"}, inplace=True)
     predictions['Pred'] = raw_predictions.iloc[:, 0]
 
     return predictions
 
 # Men predictions
 m_2021 = get_predictions("m", 2021)
-print(m_2021)
 m_2022 = get_predictions("m", 2022)
 m_2023 = get_predictions("m", 2023)
 m_2024 = get_predictions("m", 2024)
