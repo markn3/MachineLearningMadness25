@@ -22,14 +22,25 @@ def match_results(team1, team2):
     team1_id = findIDs(team1)
     team2_id = findIDs(team2)
 
+    if team1_id < team2_id:
+        lower = team1_id
+        higher = team2_id
+        lower_team_name = team1
+        higher_team_name = team2
+    else:
+        lower = team2_id
+        higher = team1_id
+        lower_team_name = team2
+        higher_team_name = team1
+
     # Filter the DataFrame where both conditions are met
-    filtered = matches[(matches['LowerTeam'] == 1101) & (matches['HigherTeam'] == 1102)]
+    filtered = matches[(matches['LowerTeam'] == lower) & (matches['HigherTeam'] == higher)]
 
     # Get the 'Pred' value. If you expect only one row, you can use .iloc[0]
     if not filtered.empty:
         pred_value = filtered['Pred'].iloc[0]
-        print(pred_value)
+        print(f"{lower_team_name} has a {round(pred_value*100, 2)}% of beating {higher_team_name}")
     else:
         print("No matching row found.")
 
-match_results("Auburn", "Alabama St")
+match_results("Louisville", "Creighton")
