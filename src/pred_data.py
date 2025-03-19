@@ -165,22 +165,25 @@ def get_season_matchups(season, csv_path="./data/m_final_df.csv"):
 
 # TODO: Keep men and women seperate and then after getting predictions, merge them into final predictions
 def get_dataframe(season, gender, csv_path="./data/m_final_raw.csv"):
-    mathchups = get_season_matchups(season, csv_path)
-    mathchups.drop(columns=["Team_lower", "Team_higher"], inplace=True)
-    mathchups.rename(columns={"TeamA": "Team1", "TeamB":"Team2"}, inplace=True)
-    mathchups.to_csv(f"./data/{gender}_matchups_{season}.csv", index=False)
+    matchups = get_season_matchups(season, csv_path)
+    matchups.drop(columns=["Team_lower", "Team_higher"], inplace=True)
+    matchups.rename(columns={"TeamA": "Team1", "TeamB":"Team2"}, inplace=True)
+    matchups.to_csv(f"./data/{gender}_matchups_{season}.csv", index=False)
 
 # Mens
-get_dataframe(2021, "m")
-get_dataframe(2022, "m")
-get_dataframe(2023, "m")
-get_dataframe(2024, "m")
+# get_dataframe(2021, "m")
+# get_dataframe(2022, "m")
+# get_dataframe(2023, "m")
+# get_dataframe(2024, "m")
+get_dataframe(2025, "m")
+
 
 # Womens
-get_dataframe(2021, "w", "./data/w_final_raw.csv")
-get_dataframe(2022, "w", "./data/w_final_raw.csv")
-get_dataframe(2023, "w", "./data/w_final_raw.csv")
-get_dataframe(2024, "w", "./data/w_final_raw.csv")
+# get_dataframe(2021, "w", "./data/w_final_raw.csv")
+# get_dataframe(2022, "w", "./data/w_final_raw.csv")
+# get_dataframe(2023, "w", "./data/w_final_raw.csv")
+# get_dataframe(2024, "w", "./data/w_final_raw.csv")
+get_dataframe(2025, "w", "./data/w_final_raw.csv")
 
 
 
