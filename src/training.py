@@ -9,7 +9,7 @@ from autogluon.tabular import TabularDataset, TabularPredictor
 pd.set_option('display.max_columns', None)
 
 
-df = pd.read_csv("./data/m_final_df.csv")
+df = pd.read_csv("./data/w_final_df.csv")
 
 # 2. Drop columns you don't want as model features
 #    Here, we remove Team1, Team2, and Season, but keep the rest (like T1_Seed, T2_Seed, net_diff, etc.).
@@ -42,7 +42,7 @@ print(f"AUC: {auc:.4f}")
 
 
 # Test AutoGlauon
-data = TabularDataset("./data/m_final_df.csv")
+data = TabularDataset("./data/w_final_df.csv")
 
 print(df)
 
@@ -60,11 +60,3 @@ predictions = predictor.predict(test_data)
 performance = predictor.evaluate(test_data)
 
 print("Model Performance:", performance)
-
-
-# PICKLE? Or try looking up documentation for models
-# # Save the model to a file
-# with open('trained_model.pkl', 'wb') as file:
-#     pickle.dump(model, file)
-
-# Grid search

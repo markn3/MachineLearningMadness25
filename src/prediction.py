@@ -17,6 +17,7 @@ def get_predictions(gender, season):
 
 # Men predictions
 m_2021 = get_predictions("m", 2021)
+print(m_2021)
 m_2022 = get_predictions("m", 2022)
 m_2023 = get_predictions("m", 2023)
 m_2024 = get_predictions("m", 2024)
@@ -36,4 +37,7 @@ all_games = pd.concat([all_games_21, all_games_22], ignore_index=True)
 all_games = pd.concat([all_games, all_games_23], ignore_index=True)
 all_games = pd.concat([all_games, all_games_24], ignore_index=True)
 
-# TODO: Train womens
+
+print(all_games)
+all_games.to_csv(f"./data/submission_stage1.csv", index=False)
+

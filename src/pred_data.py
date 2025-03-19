@@ -1,5 +1,7 @@
 import pandas as pd
 import itertools
+from sklearn.preprocessing import StandardScaler
+
 pd.set_option('display.max_columns', None)
 
 def get_season_matchups(season, csv_path="./data/m_final_df.csv"):
@@ -149,10 +151,20 @@ def get_season_matchups(season, csv_path="./data/m_final_df.csv"):
     # 5. Create the final DataFrame
     # --------------------------
     matchups_df = pd.DataFrame(matchup_dicts)
+
+    #standardize other numeric columns with StandardScaler:
+    numeric_cols = [
+        'T1_Seed', 'T2_Seed',
+        'T1_roll_Off', 'T1_roll_Def', 'T1_win_ratio',
+        'T2_roll_Off', 'T2_roll_Def', 'T2_win_ratio', 'net_diff'
+    ]
+
+    scaler = StandardScaler()
+    matchups_df[numeric_cols] = scaler.fit_transform(matchups_df[numeric_cols])
     return matchups_df
 
 # TODO: Keep men and women seperate and then after getting predictions, merge them into final predictions
-def get_dataframe(season, gender, csv_path="./data/m_final_df.csv"):
+def get_dataframe(season, gender, csv_path="./data/m_final_raw.csv"):
     mathchups = get_season_matchups(season, csv_path)
     mathchups.drop(columns=["Team_lower", "Team_higher"], inplace=True)
     mathchups.rename(columns={"TeamA": "Team1", "TeamB":"Team2"}, inplace=True)
@@ -165,10 +177,10 @@ get_dataframe(2023, "m")
 get_dataframe(2024, "m")
 
 # Womens
-get_dataframe(2021, "w", "./data/w_final_df.csv")
-get_dataframe(2022, "w", "./data/w_final_df.csv")
-get_dataframe(2023, "w", "./data/w_final_df.csv")
-get_dataframe(2024, "w", "./data/w_final_df.csv")
+get_dataframe(2021, "w", "./data/w_final_raw.csv")
+get_dataframe(2022, "w", "./data/w_final_raw.csv")
+get_dataframe(2023, "w", "./data/w_final_raw.csv")
+get_dataframe(2024, "w", "./data/w_final_raw.csv")
 
 
 

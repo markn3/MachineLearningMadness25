@@ -295,6 +295,8 @@ print("Columns after reordering:", list(matchup_data.columns))
 # one-hot encode 'HomeCourt'
 df = pd.get_dummies(matchup_data, columns=['HomeCourt'], drop_first=True)
 
+df.to_csv("./data/w_final_raw.csv", index=False)
+
 #standardize other numeric columns with StandardScaler:
 numeric_cols = [
     'T1_Seed', 'T2_Seed',
